@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ShopManagement_Backend.Models;
+using ShopManagement_Backend.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<UserService>();
 
 
 var app = builder.Build();
