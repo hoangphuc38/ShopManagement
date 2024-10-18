@@ -2,6 +2,8 @@
 {
     public class ShopResponse
     {
+        public int ShopID { get; set; }
+
         public string ShopName { get; set; } = null!;
 
         public string? ShopAddress { get; set; }
