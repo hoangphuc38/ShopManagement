@@ -18,6 +18,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ShopService>();
+builder.Services.AddScoped<ProductService>();   
+builder.Services.AddScoped<ShopDetailService>();
 
 
 var app = builder.Build();
