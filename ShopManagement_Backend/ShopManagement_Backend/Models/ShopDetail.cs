@@ -11,6 +11,8 @@ public partial class ShopDetail
 
     public int? Quantity { get; set; }
 
+    public Boolean IsDeleted { get; set; }
+
     public virtual Product Product { get; set; } = null!;
 
     public virtual Shop Shop { get; set; } = null!;

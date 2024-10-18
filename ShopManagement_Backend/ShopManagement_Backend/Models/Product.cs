@@ -11,5 +11,7 @@ public partial class Product
 
     public double? Price { get; set; }
 
+    public Boolean IsDeleted { get; set; }
+
     public virtual ICollection<ShopDetail> ShopDetails { get; set; } = new List<ShopDetail>();
 }

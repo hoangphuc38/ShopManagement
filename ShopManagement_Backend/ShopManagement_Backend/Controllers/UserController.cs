@@ -10,70 +10,51 @@ namespace ShopManagement_Backend.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly UserService _repo;
+        private readonly UserService _userService;
 
-        public UserController(UserService repo)
+        public UserController(UserService userService)
         {
-            _repo = repo;
+            _userService = userService;
         }
 
         [HttpGet("get-all")]
-        public ActionResult<BaseResponse<IEnumerable<UserResponse>>> GetAllUser()
+        public ActionResult GetAllUser()
         {
-            var userList = _repo.GetAllUser();
+            var result = _userService.GetAllUser();
 
-            return new BaseResponse<IEnumerable<UserResponse>>
-            {
-                Success = true,
-                Message = "Get all users successfully",
-                Data = userList,
-            };
+            return StatusCode(result.Status, result);
         }
 
         [HttpGet("get-by-id/{id}")]
-        public ActionResult<BaseResponse<UserResponse>> GetUser(int id)
+        public ActionResult GetUser(int id)
         {
-            var user = _repo.GetUser(id);
+            var result = _userService.GetUser(id);
 
-            if (user == null)
-            {
-                return new BaseResponse<UserResponse>
-                {
-                    Success = false,
-                    Message = "User not found",
-                    Data = null
-                };
-            }
-
-            return new BaseResponse<UserResponse>
-            {
-                Success = true,
-                Message = "Get user's information successfully",
-                Data = user
-            };
+            return StatusCode(result.Status, result);
         }
 
         [HttpPut("update/{id}")]
-        public ActionResult<BaseResponse<UserResponse>> UpdateUser(int id, UserRequest user)
+        public ActionResult UpdateUser(int id, UserRequest user)
         {
-            var userUpdate = _repo.UpdateUser(id, user);
+            var result = _userService.UpdateUser(id, user);
 
-            if (userUpdate == null)
-            {
-                return new BaseResponse<UserResponse>
-                {
-                    Success = false,
-                    Message = "User not found",
-                    Data = null
-                };
-            }
+            return StatusCode(result.Status, result);
+        }
 
-            return new BaseResponse<UserResponse>
-            {
-                Success = true,
-                Message = "Update user's information successfully",
-                Data = userUpdate
-            };
+        [HttpPut("delete/{id}")]
+        public ActionResult DeleteUser(int id)
+        {
+            var result = _userService.DeleteUser(id);
+
+            return StatusCode(result.Status, result);
+        }
+
+        [HttpPost("new-user")]
+        public ActionResult CreateUser(UserRequest user, string password)
+        {
+            var result = _userService.CreateUser(user, password);
+
+            return StatusCode(result.Status, result);
         }
     }
 }

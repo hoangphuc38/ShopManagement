@@ -17,5 +17,7 @@ public partial class User
 
     public DateOnly? SignUpDate { get; set; }
 
+    public Boolean IsDeleted { get; set; }
+
     public virtual ICollection<Shop> Shops { get; set; } = new List<Shop>();
 }

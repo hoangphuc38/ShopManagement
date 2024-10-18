@@ -14,9 +14,9 @@ namespace ShopManagement_Backend.Service
             _context = context;
         }
 
-        public IEnumerable<UserResponse> GetAllUser()
+        public BaseResponse GetAllUser()
         {
-            var userList = _context.Users.ToList();
+            var userList = _context.Users.Where(c => c.IsDeleted == false).ToList();
             var responseList = new List<UserResponse>();
 
             foreach (var user in userList)
@@ -33,19 +33,19 @@ namespace ShopManagement_Backend.Service
                 responseList.Add(response);
             }
 
-            return responseList;
+            return new BaseResponse(responseList);
         }
 
-        public UserResponse? GetUser(int id)
+        public BaseResponse GetUser(int id)
         {
             var user = _context.Users.Find(id);
 
             if (user == null)
             {
-                return null;
+                return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
             }
 
-            return new UserResponse
+            UserResponse response = new UserResponse
             {
                 UserID = id,
                 UserName = user.UserName,
@@ -53,15 +53,35 @@ namespace ShopManagement_Backend.Service
                 Address = user.Address ?? "",
                 SignUpDate = user.SignUpDate,
             };
+
+            return new BaseResponse(response);
         }
 
-        public UserResponse? UpdateUser(int id, UserRequest user)
+        public BaseResponse CreateUser(UserRequest user, string password)
+        {
+            User newUser = new User
+            {
+                FullName = user.FullName,
+                UserName = user.UserName,
+                Password = password,
+                Address = user.Address,
+                IsDeleted = false,
+                SignUpDate = DateOnly.FromDateTime(DateTime.Now),
+            };
+
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
+
+            return new BaseResponse("Create user successfully");
+        }
+
+        public BaseResponse UpdateUser(int id, UserRequest user)
         {
             var userUpdate = _context.Users.Find(id);
 
             if (userUpdate == null)
             {
-                return null;
+                return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
             }
 
             userUpdate.FullName = user.FullName;
@@ -71,7 +91,7 @@ namespace ShopManagement_Backend.Service
             _context.Update(userUpdate);
             _context.SaveChanges();
 
-            return new UserResponse
+            UserResponse response = new UserResponse
             {
                 UserID = id,
                 UserName = userUpdate.UserName,
@@ -79,6 +99,24 @@ namespace ShopManagement_Backend.Service
                 Address = userUpdate.Address,
                 SignUpDate = userUpdate.SignUpDate,
             };
+
+            return new BaseResponse(response);
+        }
+
+        public BaseResponse DeleteUser(int id)
+        {
+            var user = _context.Users.Find(id);
+
+            if (user == null)
+            {
+                return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
+            }
+
+            user.IsDeleted = true;
+            _context.Update(user);
+            _context.SaveChanges();
+
+            return new BaseResponse("Delete user successfully");
         }
     }
 }

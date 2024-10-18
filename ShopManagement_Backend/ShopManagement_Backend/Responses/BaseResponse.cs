@@ -1,9 +1,29 @@
 ﻿namespace ShopManagement_Backend.Responses
 {
-    public class BaseResponse<T>
+    public class BaseResponse
     {
-        public bool Success { get; set; }
+        public int Status { get; set; }
         public string? Message { get; set; }
-        public T? Data { get; set; }
+        public object? Data { get; set; }
+
+        public BaseResponse(string message)
+        {
+            Status = StatusCodes.Status200OK;
+            Message = message;
+        }
+
+        public BaseResponse(object data)
+        {
+            Status = StatusCodes.Status200OK;
+            Message = "Success";
+            Data = data;
+        }
+
+        // Failed to execute
+        public BaseResponse(int stautus, string message)
+        {
+            Status = stautus;
+            Message = message;
+        }
     }
 }

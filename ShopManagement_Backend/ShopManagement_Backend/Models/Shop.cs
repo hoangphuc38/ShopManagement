@@ -15,6 +15,8 @@ public partial class Shop
 
     public DateOnly? CreatedDate { get; set; }
 
+    public Boolean IsDeleted { get; set; }
+
     public virtual ICollection<ShopDetail> ShopDetails { get; set; } = new List<ShopDetail>();
 
     public virtual User User { get; set; } = null!;

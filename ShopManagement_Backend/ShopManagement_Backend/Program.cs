@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ShopManagement_Backend.Models;
 using ShopManagement_Backend.Service;
+using ShopManagement_Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ShopService>();
 
 
 var app = builder.Build();
