@@ -57,13 +57,13 @@ namespace ShopManagement_Backend.Service
             return new BaseResponse(response);
         }
 
-        public BaseResponse CreateUser(UserRequest user, string password)
+        public BaseResponse CreateUser(UserRequest user)
         {
             User newUser = new User
             {
                 FullName = user.FullName,
                 UserName = user.UserName,
-                Password = password,
+                Password = user.Password,
                 Address = user.Address,
                 IsDeleted = false,
                 SignUpDate = DateOnly.FromDateTime(DateTime.Now),

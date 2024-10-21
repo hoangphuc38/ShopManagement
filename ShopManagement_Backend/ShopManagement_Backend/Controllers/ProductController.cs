@@ -15,24 +15,24 @@ namespace ShopManagement_Backend.Controllers
             _productService = productService;
         }
 
-        [HttpGet("get-all")]
-        public ActionResult GetAll()
+        [HttpGet]
+        public IActionResult GetAll()
         {
             var result = _productService.GetAll();
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpGet("get-detail-product/{productID}")]
-        public ActionResult GetDetailProduct(int productID)
+        [HttpGet("{productID}")]
+        public IActionResult GetDetailProduct(int productID)
         {
             var result = _productService.GetDetailProduct(productID);
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpPut("update/{productID}")]
-        public ActionResult UpdateProduct(int productID, ProductRequest product)
+        [HttpPut("{productID}")]
+        public IActionResult UpdateProduct(int productID, ProductRequest product)
         {
             var result = _productService.UpdateProduct(productID, product);
 
@@ -40,15 +40,15 @@ namespace ShopManagement_Backend.Controllers
         }
 
         [HttpPut("delete/{productID}")]
-        public ActionResult DeleteProduct(int productID)
+        public IActionResult DeleteProduct(int productID)
         {
             var result = _productService.DeleteProduct(productID);
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpPost("new-product")]
-        public ActionResult CreateProduct(ProductRequest product)
+        [HttpPost]
+        public IActionResult CreateProduct(ProductRequest product)
         {
             var result = _productService.CreateProduct(product);
 

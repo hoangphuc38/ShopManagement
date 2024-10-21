@@ -16,24 +16,24 @@ namespace ShopManagement_Backend.Controllers
             _shopService = shopService;
         }
 
-        [HttpGet("get-all")]
-        public ActionResult GetAll()
+        [HttpGet]
+        public IActionResult GetAll()
         {
             var result = _shopService.GetAll();
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpGet("get-shops-of-user/{id}")]
-        public ActionResult GetShopOfUser(int id)
+        [HttpGet("{userId}")]
+        public IActionResult GetShopOfUser(int userId)
         {
-            var result = _shopService.GetShopOfUser(id);
+            var result = _shopService.GetShopOfUser(userId);
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpPut("update/{shopID}")]
-        public ActionResult UpdateShop(int shopID, ShopRequest shop)
+        [HttpPut("{shopID}")]
+        public IActionResult UpdateShop(int shopID, ShopRequest shop)
         {
             var result = _shopService.UpdateShop(shopID, shop);
 
@@ -41,15 +41,15 @@ namespace ShopManagement_Backend.Controllers
         }
 
         [HttpPut("delete/{shopID}")]
-        public ActionResult DeleteShop(int shopID)
+        public IActionResult DeleteShop(int shopID)
         {
             var result = _shopService.DeleteShop(shopID);
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpPost("new-shop/{userID}")]
-        public ActionResult CreateShop(int userID, ShopRequest shop)
+        [HttpPost("{userID}")]
+        public IActionResult CreateShop(int userID, ShopRequest shop)
         {
             var result = _shopService.CreateShop(userID, shop);
 

@@ -17,24 +17,24 @@ namespace ShopManagement_Backend.Controllers
             _userService = userService;
         }
 
-        [HttpGet("get-all")]
-        public ActionResult GetAllUser()
+        [HttpGet]
+        public IActionResult GetAllUser()
         {
             var result = _userService.GetAllUser();
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpGet("get-by-id/{id}")]
-        public ActionResult GetUser(int id)
+        [HttpGet("{id}")]
+        public IActionResult GetUser(int id)
         {
             var result = _userService.GetUser(id);
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpPut("update/{id}")]
-        public ActionResult UpdateUser(int id, UserRequest user)
+        [HttpPut("{id}")]
+        public IActionResult UpdateUser(int id, UserRequest user)
         {
             var result = _userService.UpdateUser(id, user);
 
@@ -42,17 +42,17 @@ namespace ShopManagement_Backend.Controllers
         }
 
         [HttpPut("delete/{id}")]
-        public ActionResult DeleteUser(int id)
+        public IActionResult DeleteUser(int id)
         {
             var result = _userService.DeleteUser(id);
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpPost("new-user")]
-        public ActionResult CreateUser(UserRequest user, string password)
+        [HttpPost]
+        public IActionResult CreateUser(UserRequest user)
         {
-            var result = _userService.CreateUser(user, password);
+            var result = _userService.CreateUser(user);
 
             return StatusCode(result.Status, result);
         }

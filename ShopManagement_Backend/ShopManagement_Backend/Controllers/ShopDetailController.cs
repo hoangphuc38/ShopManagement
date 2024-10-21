@@ -15,16 +15,16 @@ namespace ShopManagement_Backend.Controllers
             _shopDetailService = shopDetailService;
         }
 
-        [HttpGet("get-all-of-shop/{shopID}")]
-        public ActionResult GetAll(int shopID)
+        [HttpGet("{shopID}")]
+        public IActionResult GetAll(int shopID)
         {
             var result = _shopDetailService.GetAllOfShop(shopID);
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpPut("update-detail")]
-        public ActionResult UpdateDetail(ShopDetailRequest request)
+        [HttpPut]
+        public IActionResult UpdateDetail(ShopDetailRequest request)
         {
             var result = _shopDetailService.UpdateDetail(request);
 
@@ -32,15 +32,15 @@ namespace ShopManagement_Backend.Controllers
         }
 
         [HttpPut("delete")]
-        public ActionResult DeleteProduct(int shopID, int productID)
+        public IActionResult DeleteProduct(int shopID, int productID)
         {
             var result = _shopDetailService.DeleteDetail(shopID, productID);
 
             return StatusCode(result.Status, result);
         }
 
-        [HttpPost("new-detail")]
-        public ActionResult CreateDetail(ShopDetailRequest detail)
+        [HttpPost]
+        public IActionResult CreateDetail(ShopDetailRequest detail)
         {
             var result = _shopDetailService.CreateDetail(detail);
 
