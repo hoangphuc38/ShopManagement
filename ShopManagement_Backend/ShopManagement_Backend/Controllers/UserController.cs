@@ -41,7 +41,7 @@ namespace ShopManagement_Backend.Controllers
             return StatusCode(result.Status, result);
         }
 
-        [HttpPut("delete/{id}")]
+        [HttpDelete("{id}")]
         public IActionResult DeleteUser(int id)
         {
             var result = _userService.DeleteUser(id);

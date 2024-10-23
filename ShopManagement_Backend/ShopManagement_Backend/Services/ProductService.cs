@@ -1,4 +1,5 @@
-﻿using Azure.Core;
+﻿using AutoMapper;
+using Azure.Core;
 using ShopManagement_Backend.Models;
 using ShopManagement_Backend.Requests;
 using ShopManagement_Backend.Responses;
@@ -7,11 +8,13 @@ namespace ShopManagement_Backend.Services
 {
     public class ProductService
     {
-        public ShopManagementDbContext _context;
+        private readonly ShopManagementDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ProductService(ShopManagementDbContext context)
+        public ProductService(ShopManagementDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public BaseResponse GetAll()
@@ -21,13 +24,7 @@ namespace ShopManagement_Backend.Services
 
             foreach (var product in productList)
             {
-                ProductResponse response = new ProductResponse
-                {
-                    ProductId = product.ProductId,
-                    ProductName = product.ProductName,
-                    Price = product.Price,
-                };
-
+                var response = _mapper.Map<ProductResponse>(product);
                 responseList.Add(response);
             }
 
@@ -43,12 +40,7 @@ namespace ShopManagement_Backend.Services
                 return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
             }
 
-            ProductResponse response = new ProductResponse
-            {
-                ProductId = product.ProductId,
-                ProductName = product.ProductName,
-                Price = product.Price,
-            };
+            var response = _mapper.Map<ProductResponse>(product);
 
             return new BaseResponse(response);
         }
@@ -90,12 +82,8 @@ namespace ShopManagement_Backend.Services
 
         public BaseResponse CreateProduct(ProductRequest request)
         {
-            Product product = new Product
-            {
-                ProductName = request.ProductName,
-                Price = request.Price,
-                IsDeleted = false,
-            };
+            var product = _mapper.Map<Product>(request);
+            product.IsDeleted = false;
 
             _context.Products.Add(product);
             _context.SaveChanges();

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using ShopManagement_Backend.Models;
 using ShopManagement_Backend.Requests;
 using ShopManagement_Backend.Responses;
@@ -8,10 +9,12 @@ namespace ShopManagement_Backend.Service
     public class UserService
     {
         private readonly ShopManagementDbContext _context;
+        private readonly IMapper _mapper;
 
-        public UserService(ShopManagementDbContext context)
+        public UserService(ShopManagementDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public BaseResponse GetAllUser()
@@ -21,14 +24,7 @@ namespace ShopManagement_Backend.Service
 
             foreach (var user in userList)
             {
-                UserResponse response = new UserResponse
-                {
-                    UserID = user.Id,
-                    UserName = user.UserName,
-                    FullName = user.FullName,
-                    Address = user.Address ?? "",
-                    SignUpDate = user.SignUpDate,
-                };
+                var response = _mapper.Map<UserResponse>(user);
 
                 responseList.Add(response);
             }
@@ -44,30 +40,17 @@ namespace ShopManagement_Backend.Service
             {
                 return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
             }
-
-            UserResponse response = new UserResponse
-            {
-                UserID = id,
-                UserName = user.UserName,
-                FullName = user.FullName,
-                Address = user.Address ?? "",
-                SignUpDate = user.SignUpDate,
-            };
+            
+            var response = _mapper.Map<UserResponse>(user);
 
             return new BaseResponse(response);
         }
 
         public BaseResponse CreateUser(UserRequest user)
         {
-            User newUser = new User
-            {
-                FullName = user.FullName,
-                UserName = user.UserName,
-                Password = user.Password,
-                Address = user.Address,
-                IsDeleted = false,
-                SignUpDate = DateOnly.FromDateTime(DateTime.Now),
-            };
+            var newUser = _mapper.Map<User>(user);
+            newUser.IsDeleted = false;
+            newUser.SignUpDate = DateOnly.FromDateTime(DateTime.Now);
 
             _context.Users.Add(newUser);
             _context.SaveChanges();
@@ -91,14 +74,7 @@ namespace ShopManagement_Backend.Service
             _context.Update(userUpdate);
             _context.SaveChanges();
 
-            UserResponse response = new UserResponse
-            {
-                UserID = id,
-                UserName = userUpdate.UserName,
-                FullName = userUpdate.FullName,
-                Address = userUpdate.Address,
-                SignUpDate = userUpdate.SignUpDate,
-            };
+            var response = _mapper.Map<UserResponse>(userUpdate);
 
             return new BaseResponse(response);
         }

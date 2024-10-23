@@ -40,7 +40,7 @@ namespace ShopManagement_Backend.Controllers
             return StatusCode(result.Status, result);
         }
 
-        [HttpPut("delete/{shopID}")]
+        [HttpDelete("{shopID}")]
         public IActionResult DeleteShop(int shopID)
         {
             var result = _shopService.DeleteShop(shopID);

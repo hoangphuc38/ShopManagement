@@ -1,4 +1,5 @@
-﻿using Azure.Core;
+﻿using AutoMapper;
+using Azure.Core;
 using ShopManagement_Backend.Models;
 using ShopManagement_Backend.Requests;
 using ShopManagement_Backend.Responses;
@@ -8,10 +9,12 @@ namespace ShopManagement_Backend.Services
     public class ShopDetailService
     {
         private readonly ShopManagementDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ShopDetailService(ShopManagementDbContext context)
+        public ShopDetailService(ShopManagementDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public BaseResponse GetAllOfShop(int id)
@@ -32,16 +35,7 @@ namespace ShopManagement_Backend.Services
                     continue;
                 }
 
-                ShopDetailResponse response = new ShopDetailResponse
-                {
-                    Quantity = product.Quantity,
-                    Product = new ProductResponse
-                    {
-                        ProductId = productRes.ProductId,
-                        ProductName = productRes.ProductName,
-                        Price = productRes.Price,
-                    },
-                };
+                var response = _mapper.Map<ShopDetailResponse>(product);
 
                 responseList.Add(response);
             }
@@ -136,13 +130,8 @@ namespace ShopManagement_Backend.Services
             //If detail not exist, create new one
             if (detail == null)
             {
-                ShopDetail shopDetail = new ShopDetail
-                {
-                    ProductId = request.ProductId,
-                    ShopId = request.ShopId,
-                    Quantity = request.Quantity,
-                    IsDeleted = false
-                };
+                var shopDetail = _mapper.Map<ShopDetail>(request);
+                shopDetail.IsDeleted = false;
 
                 _context.ShopDetails.Add(shopDetail);
                 _context.SaveChanges();

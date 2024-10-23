@@ -39,7 +39,7 @@ namespace ShopManagement_Backend.Controllers
             return StatusCode(result.Status, result);
         }
 
-        [HttpPut("delete/{productID}")]
+        [HttpDelete("{productID}")]
         public IActionResult DeleteProduct(int productID)
         {
             var result = _productService.DeleteProduct(productID);

@@ -1,4 +1,5 @@
-﻿using ShopManagement_Backend.Models;
+﻿using AutoMapper;
+using ShopManagement_Backend.Models;
 using ShopManagement_Backend.Requests;
 using ShopManagement_Backend.Responses;
 
@@ -7,10 +8,12 @@ namespace ShopManagement_Backend.Services
     public class ShopService
     {
         private readonly ShopManagementDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ShopService(ShopManagementDbContext context)
+        public ShopService(ShopManagementDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public BaseResponse GetAll()
@@ -20,14 +23,7 @@ namespace ShopManagement_Backend.Services
 
             foreach (var shop in shopList)
             {
-                ShopResponse response = new ShopResponse
-                {
-                    ShopID = shop.ShopId,
-                    ShopName = shop.ShopName,
-                    ShopAddress = shop.ShopAddress,
-                    CreatedDate = shop.CreatedDate,
-                };
-
+                var response = _mapper.Map<ShopResponse>(shop);
                 var user = _context.Users.Find(shop.UserId);
 
                 if (user == null)
@@ -46,7 +42,9 @@ namespace ShopManagement_Backend.Services
 
         public BaseResponse GetShopOfUser(int userID)
         {
-            var shopList = _context.Shops.Where(c => c.UserId == userID).ToList();
+            var shopList = _context.Shops
+                                   .Where(c => c.UserId == userID && c.IsDeleted == false)
+                                   .ToList();
             var responseList = new List<ShopResponse>();
 
             if (shopList == null)
@@ -56,13 +54,7 @@ namespace ShopManagement_Backend.Services
 
             foreach (var shop in shopList)
             {
-                ShopResponse response = new ShopResponse
-                {
-                    ShopID = shop.ShopId,
-                    ShopName = shop.ShopName,
-                    ShopAddress = shop.ShopAddress,
-                    CreatedDate = shop.CreatedDate,
-                };
+                var response = _mapper.Map<ShopResponse>(shop);
                 var user = _context.Users.Find(shop.UserId);
 
                 if (user == null)
@@ -106,14 +98,10 @@ namespace ShopManagement_Backend.Services
                 return new BaseResponse(StatusCodes.Status404NotFound, "User not found");
             }
 
-            Shop shop = new Shop
-            {
-                UserId = userID,
-                ShopName = request.ShopName,
-                ShopAddress = request.ShopAddress,
-                CreatedDate = DateOnly.FromDateTime(DateTime.Now),
-                IsDeleted = false,
-            };
+            var shop = _mapper.Map<Shop>(request);
+            shop.UserId = userID;
+            shop.CreatedDate = DateOnly.FromDateTime(DateTime.Now);
+            shop.IsDeleted = false;
 
             _context.Shops.Add(shop);
             _context.SaveChanges();
