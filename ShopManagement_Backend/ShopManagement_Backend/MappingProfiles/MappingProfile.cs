@@ -12,7 +12,8 @@ namespace ShopManagement_Backend.MappingProfiles
             CreateMap<Product, ProductResponse>();
             CreateMap<ProductRequest, Product>();
 
-            CreateMap<Shop, ShopResponse>();
+            CreateMap<Shop, ShopResponse>()
+                .ForMember(dest => dest.OwnerName, opt => opt.MapFrom(src => src.User.FullName));
             CreateMap<ShopRequest, Shop>();
 
             CreateMap<User, UserResponse>()
@@ -20,7 +21,7 @@ namespace ShopManagement_Backend.MappingProfiles
             CreateMap<UserRequest, User>();
 
             CreateMap<ShopDetail, ShopDetailResponse>()
-                .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
+                .ForPath(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
             CreateMap<ShopDetailRequest, ShopDetail>();
         }
     }

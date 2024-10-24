@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ShopManagement_Backend.Middlewares;
 using ShopManagement_Backend.Models;
 using ShopManagement_Backend.Service;
 using ShopManagement_Backend.Services;
@@ -22,7 +23,6 @@ builder.Services.AddScoped<ShopService>();
 builder.Services.AddScoped<ProductService>();   
 builder.Services.AddScoped<ShopDetailService>();
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -31,6 +31,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<GlobalErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 

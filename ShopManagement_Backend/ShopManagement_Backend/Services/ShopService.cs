@@ -19,24 +19,15 @@ namespace ShopManagement_Backend.Services
         public BaseResponse GetAll()
         {
             var shopList = _context.Shops.Where(c => c.IsDeleted == false).ToList();
-            var responseList = new List<ShopResponse>();
 
             foreach (var shop in shopList)
             {
-                var response = _mapper.Map<ShopResponse>(shop);
-                var user = _context.Users.Find(shop.UserId);
-
-                if (user == null)
-                {
-                    return new BaseResponse(
-                        StatusCodes.Status404NotFound, "Not found owner of the shop");
-                }
-
-                response.OwnerName = user.FullName; 
-
-                responseList.Add(response);
+                var user = _context.Users
+                                   .Where(c => c.Id == shop.UserId && c.IsDeleted == false)
+                                   .FirstOrDefault();                
             }
 
+            var responseList = _mapper.Map<List<ShopResponse>>(shopList);
             return new BaseResponse(responseList);
         }
 
@@ -119,8 +110,15 @@ namespace ShopManagement_Backend.Services
             }
 
             shop.IsDeleted = true;
-
             _context.Shops.Update(shop);
+
+            var detailList = _context.ShopDetails.Where(c => c.ShopId == shopID).ToList();
+            foreach (var detail in detailList)
+            {
+                detail.IsDeleted = true;
+                _context.ShopDetails.Update(detail);
+            }
+
             _context.SaveChanges();
 
             return new BaseResponse("Delete shop successfully");

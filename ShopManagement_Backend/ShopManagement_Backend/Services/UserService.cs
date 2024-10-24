@@ -89,7 +89,22 @@ namespace ShopManagement_Backend.Service
             }
 
             user.IsDeleted = true;
-            _context.Update(user);
+            _context.Users.Update(user);
+
+            var shopList = _context.Shops.Where(c => c.UserId == user.Id).ToList();
+            foreach (var shop in shopList)
+            {
+                shop.IsDeleted = true;
+                _context.Shops.Update(shop);
+
+                var shopDetail = _context.ShopDetails.Where(c => c.ShopId == shop.ShopId).ToList();
+                foreach (var detail in shopDetail)
+                {
+                    detail.IsDeleted = true;
+                    _context.ShopDetails.Update(detail);
+                }
+            }
+
             _context.SaveChanges();
 
             return new BaseResponse("Delete user successfully");

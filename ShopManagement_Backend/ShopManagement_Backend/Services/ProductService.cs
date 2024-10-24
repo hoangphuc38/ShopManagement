@@ -73,8 +73,15 @@ namespace ShopManagement_Backend.Services
             }
 
             product.IsDeleted = true;
-
             _context.Products.Update(product);
+
+            var detailList = _context.ShopDetails.Where(c => c.ProductId == id).ToList();
+            foreach (var detail in detailList)
+            {
+                detail.IsDeleted = true;
+                _context.ShopDetails.Update(detail);
+            }
+
             _context.SaveChanges();
 
             return new BaseResponse("Delete product successfully");
