@@ -25,14 +25,14 @@ builder.Services.AddScoped<ShopDetailService>();
 
 var app = builder.Build();
 
+app.UseMiddleware<GlobalErrorHandlingMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseMiddleware<GlobalErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 
