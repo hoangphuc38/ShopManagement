@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShopManagement_Backend.Requests;
-using ShopManagement_Backend.Responses;
 using ShopManagement_Backend.Services;
 
 namespace ShopManagement_Backend.Controllers
@@ -9,9 +8,9 @@ namespace ShopManagement_Backend.Controllers
     [ApiController]
     public class ShopController : ControllerBase
     {
-        private readonly ShopService _shopService;
+        private readonly IShopService _shopService;
 
-        public ShopController(ShopService shopService)
+        public ShopController(IShopService shopService)
         {
             _shopService = shopService;
         }

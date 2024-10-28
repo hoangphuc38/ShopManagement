@@ -10,6 +10,8 @@ namespace ShopManagement_Backend.Repositories
 
         List<TEntity> GetAllAsync(Expression<Func<TEntity, bool>> predicate);
 
+        TEntity? GetFirstOrNullAsync(Expression<Func<TEntity, bool>> predicate);
+
         TEntity GetFirstAsync(Expression<Func<TEntity, bool>> predicate);
 
         TEntity UpdateAsync(TEntity entity);

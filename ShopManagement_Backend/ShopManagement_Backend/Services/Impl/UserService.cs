@@ -1,46 +1,48 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using ShopManagement_Backend.Models;
+using ShopManagement_Backend.Repositories;
 using ShopManagement_Backend.Requests;
 using ShopManagement_Backend.Responses;
 
-namespace ShopManagement_Backend.Service
+namespace ShopManagement_Backend.Services.Impl
 {
-    public class UserService
+    public class UserService : IUserService
     {
-        private readonly ShopManagementDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IUserRepository _userRepo;
+        private readonly IShopRepository _shopRepo;
+        private readonly IShopDetailRepository _shopDetailRepo;
 
-        public UserService(ShopManagementDbContext context, IMapper mapper)
+        public UserService(
+            IMapper mapper,
+            IUserRepository userRepo,
+            IShopRepository shopRepo,
+            IShopDetailRepository shopDetailRepo)
         {
-            _context = context;
             _mapper = mapper;
+            _userRepo = userRepo;
+            _shopRepo = shopRepo;
+            _shopDetailRepo = shopDetailRepo;
         }
 
         public BaseResponse GetAllUser()
         {
-            var userList = _context.Users.Where(c => c.IsDeleted == false).ToList();
-            var responseList = new List<UserResponse>();
-
-            foreach (var user in userList)
-            {
-                var response = _mapper.Map<UserResponse>(user);
-
-                responseList.Add(response);
-            }
+            var userList = _userRepo.GetAllAsync(c => c.IsDeleted == false);
+            var responseList = _mapper.Map<List<UserResponse>>(userList);
 
             return new BaseResponse(responseList);
         }
 
         public BaseResponse GetUser(int id)
         {
-            var user = _context.Users.Find(id);
+            var user = _userRepo.GetFirstAsync(c => c.Id == id);
 
             if (user == null)
             {
                 return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
             }
-            
+
             var response = _mapper.Map<UserResponse>(user);
 
             return new BaseResponse(response);
@@ -52,15 +54,14 @@ namespace ShopManagement_Backend.Service
             newUser.IsDeleted = false;
             newUser.SignUpDate = DateOnly.FromDateTime(DateTime.Now);
 
-            _context.Users.Add(newUser);
-            _context.SaveChanges();
+            _userRepo.AddAsync(newUser);
 
             return new BaseResponse("Create user successfully");
         }
 
         public BaseResponse UpdateUser(int id, UserRequest user)
         {
-            var userUpdate = _context.Users.Find(id);
+            var userUpdate = _userRepo.GetFirstAsync(c => c.Id == id);
 
             if (userUpdate == null)
             {
@@ -71,17 +72,16 @@ namespace ShopManagement_Backend.Service
             userUpdate.UserName = user.UserName;
             userUpdate.Address = user.Address;
 
-            _context.Update(userUpdate);
-            _context.SaveChanges();
+            _userRepo.UpdateAsync(userUpdate);
 
             var response = _mapper.Map<UserResponse>(userUpdate);
 
-            return new BaseResponse(response);
+            return new BaseResponse("Update user successfully");
         }
 
         public BaseResponse DeleteUser(int id)
         {
-            var user = _context.Users.Find(id);
+            var user = _userRepo.GetFirstAsync(c => c.Id == id);
 
             if (user == null)
             {
@@ -89,23 +89,21 @@ namespace ShopManagement_Backend.Service
             }
 
             user.IsDeleted = true;
-            _context.Users.Update(user);
+            _userRepo.UpdateAsync(user);
 
-            var shopList = _context.Shops.Where(c => c.UserId == user.Id).ToList();
+            var shopList = _shopRepo.GetAllAsync(c => c.UserId == user.Id);
             foreach (var shop in shopList)
             {
                 shop.IsDeleted = true;
-                _context.Shops.Update(shop);
+                _shopRepo.UpdateAsync(shop);
 
-                var shopDetail = _context.ShopDetails.Where(c => c.ShopId == shop.ShopId).ToList();
+                var shopDetail = _shopDetailRepo.GetAllAsync(c => c.ShopId == shop.ShopId);
                 foreach (var detail in shopDetail)
                 {
                     detail.IsDeleted = true;
-                    _context.ShopDetails.Update(detail);
+                    _shopDetailRepo.DeleteAsync(detail);
                 }
             }
-
-            _context.SaveChanges();
 
             return new BaseResponse("Delete user successfully");
         }

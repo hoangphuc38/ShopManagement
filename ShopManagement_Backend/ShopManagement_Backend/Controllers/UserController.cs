@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ShopManagement_Backend.Models;
 using ShopManagement_Backend.Requests;
-using ShopManagement_Backend.Responses;
-using ShopManagement_Backend.Service;
+using ShopManagement_Backend.Services;
 
 namespace ShopManagement_Backend.Controllers
 {
@@ -10,9 +8,9 @@ namespace ShopManagement_Backend.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
 
-        public UserController(UserService userService)
+        public UserController(IUserService userService)
         {
             _userService = userService;
         }

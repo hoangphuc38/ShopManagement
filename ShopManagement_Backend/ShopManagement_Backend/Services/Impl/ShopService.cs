@@ -1,30 +1,37 @@
 ﻿using AutoMapper;
 using ShopManagement_Backend.Models;
+using ShopManagement_Backend.Repositories;
 using ShopManagement_Backend.Requests;
 using ShopManagement_Backend.Responses;
 
-namespace ShopManagement_Backend.Services
+namespace ShopManagement_Backend.Services.Impl
 {
-    public class ShopService
+    public class ShopService : IShopService
     {
-        private readonly ShopManagementDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IShopRepository _shopRepo;
+        private readonly IUserRepository _userRepo;
+        private readonly IShopDetailRepository _shopDetailRepo;
 
-        public ShopService(ShopManagementDbContext context, IMapper mapper)
+        public ShopService(
+            IMapper mapper,
+            IShopRepository shopRepo,
+            IUserRepository userRepo,
+            IShopDetailRepository shopDetailRepo)
         {
-            _context = context;
             _mapper = mapper;
+            _shopRepo = shopRepo;
+            _userRepo = userRepo;
+            _shopDetailRepo = shopDetailRepo;
         }
 
         public BaseResponse GetAll()
         {
-            var shopList = _context.Shops.Where(c => c.IsDeleted == false).ToList();
+            var shopList = _shopRepo.GetAllAsync(c => c.IsDeleted == false);
 
             foreach (var shop in shopList)
             {
-                var user = _context.Users
-                                   .Where(c => c.Id == shop.UserId && c.IsDeleted == false)
-                                   .FirstOrDefault();                
+                var user = _userRepo.GetFirstAsync(c => c.Id == shop.UserId && c.IsDeleted == false);
             }
 
             var responseList = _mapper.Map<List<ShopResponse>>(shopList);
@@ -33,9 +40,7 @@ namespace ShopManagement_Backend.Services
 
         public BaseResponse GetShopOfUser(int userID)
         {
-            var shopList = _context.Shops
-                                   .Where(c => c.UserId == userID && c.IsDeleted == false)
-                                   .ToList();
+            var shopList = _shopRepo.GetAllAsync(c => c.UserId == userID && c.IsDeleted == false);
             var responseList = new List<ShopResponse>();
 
             if (shopList == null)
@@ -46,7 +51,7 @@ namespace ShopManagement_Backend.Services
             foreach (var shop in shopList)
             {
                 var response = _mapper.Map<ShopResponse>(shop);
-                var user = _context.Users.Find(shop.UserId);
+                var user = _userRepo.GetFirstAsync(c => c.Id == userID);
 
                 if (user == null)
                 {
@@ -64,7 +69,7 @@ namespace ShopManagement_Backend.Services
 
         public BaseResponse UpdateShop(int shopID, ShopRequest request)
         {
-            var shop = _context.Shops.Find(shopID);
+            var shop = _shopRepo.GetFirstAsync(c => c.ShopId == shopID);
 
             if (shop == null)
             {
@@ -73,16 +78,15 @@ namespace ShopManagement_Backend.Services
 
             shop.ShopName = request.ShopName;
             shop.ShopAddress = request.ShopAddress;
-            
-            _context.Shops.Update(shop);
-            _context.SaveChanges();
 
-            return new BaseResponse(shop);
+            _shopRepo.UpdateAsync(shop);
+
+            return new BaseResponse("Update shop successfully");
         }
 
         public BaseResponse CreateShop(int userID, ShopRequest request)
         {
-            var user = _context.Users.Find(userID);
+            var user = _userRepo.GetFirstAsync(c => c.Id == userID);
 
             if (user == null)
             {
@@ -94,15 +98,14 @@ namespace ShopManagement_Backend.Services
             shop.CreatedDate = DateOnly.FromDateTime(DateTime.Now);
             shop.IsDeleted = false;
 
-            _context.Shops.Add(shop);
-            _context.SaveChanges();
+            _shopRepo.AddAsync(shop);
 
             return new BaseResponse("Create new shop successfully");
         }
 
         public BaseResponse DeleteShop(int shopID)
         {
-            var shop = _context.Shops.Find(shopID);
+            var shop = _shopRepo.GetFirstAsync(c => c.ShopId == shopID);
 
             if (shop == null)
             {
@@ -110,16 +113,14 @@ namespace ShopManagement_Backend.Services
             }
 
             shop.IsDeleted = true;
-            _context.Shops.Update(shop);
+            _shopRepo.UpdateAsync(shop);
 
-            var detailList = _context.ShopDetails.Where(c => c.ShopId == shopID).ToList();
+            var detailList = _shopDetailRepo.GetAllAsync(c => c.ShopId == shopID);
             foreach (var detail in detailList)
             {
                 detail.IsDeleted = true;
-                _context.ShopDetails.Update(detail);
+                _shopDetailRepo.UpdateAsync(detail);
             }
-
-            _context.SaveChanges();
 
             return new BaseResponse("Delete shop successfully");
         }

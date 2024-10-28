@@ -36,17 +36,17 @@ namespace ShopManagement_Backend.Middlewares
 
             BaseResponse response;
 
-            switch(context.Response.StatusCode)
+            switch(exception)
             {
-                case (int)HttpStatusCode.BadRequest:
+                case BadHttpRequestException:
                     response = new BaseResponse(
                         StatusCodes.Status400BadRequest, "Bad request");
                     break;
-                case (int)HttpStatusCode.NotFound:
+                case KeyNotFoundException:
                     response = new BaseResponse(
                         StatusCodes.Status404NotFound, "The request key not found");
                     break;
-                case (int)HttpStatusCode.Unauthorized:
+                case UnauthorizedAccessException:
                     response = new BaseResponse(
                         StatusCodes.Status401Unauthorized, "Unauthorized");
                     break;

@@ -8,9 +8,9 @@ namespace ShopManagement_Backend.Controllers
     [ApiController]
     public class ShopDetailController : ControllerBase
     {
-        private ShopDetailService _shopDetailService;
+        private IShopDetailService _shopDetailService;
 
-        public ShopDetailController(ShopDetailService shopDetailService)
+        public ShopDetailController(IShopDetailService shopDetailService)
         {
             _shopDetailService = shopDetailService;
         }

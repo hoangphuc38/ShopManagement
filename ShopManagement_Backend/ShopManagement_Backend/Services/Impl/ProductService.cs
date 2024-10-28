@@ -1,39 +1,38 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using ShopManagement_Backend.Models;
+using ShopManagement_Backend.Repositories;
 using ShopManagement_Backend.Requests;
 using ShopManagement_Backend.Responses;
 
-namespace ShopManagement_Backend.Services
+namespace ShopManagement_Backend.Services.Impl
 {
-    public class ProductService
+    public class ProductService : IProductService
     {
-        private readonly ShopManagementDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IProductRepository _productRepo;
+        private readonly IShopDetailRepository _shopDetailRepo;
 
-        public ProductService(ShopManagementDbContext context, IMapper mapper)
+        public ProductService(
+            IMapper mapper, 
+            IProductRepository productRepo,
+            IShopDetailRepository shopDetailRepo)
         {
-            _context = context;
             _mapper = mapper;
+            _productRepo = productRepo;
+            _shopDetailRepo = shopDetailRepo;
         }
 
         public BaseResponse GetAll()
         {
-            var productList = _context.Products.Where(c => c.IsDeleted == false).ToList();
-            var responseList = new List<ProductResponse>();
-
-            foreach (var product in productList)
-            {
-                var response = _mapper.Map<ProductResponse>(product);
-                responseList.Add(response);
-            }
+            var productList = _productRepo.GetAllAsync(t => t.IsDeleted == false);
+            var responseList = _mapper.Map<List<ProductResponse>>(productList);
 
             return new BaseResponse(responseList);
         }
 
         public BaseResponse GetDetailProduct(int id)
         {
-            var product = _context.Products.Find(id);
+            var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
 
             if (product == null)
             {
@@ -47,7 +46,7 @@ namespace ShopManagement_Backend.Services
 
         public BaseResponse UpdateProduct(int id, ProductRequest request)
         {
-            var product = _context.Products.Find(id);
+            var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
 
             if (product == null)
             {
@@ -57,15 +56,14 @@ namespace ShopManagement_Backend.Services
             product.ProductName = request.ProductName;
             product.Price = request.Price;
 
-            _context.Products.Update(product);
-            _context.SaveChanges();
+            _productRepo.UpdateAsync(product);
 
             return new BaseResponse("Update product successfully");
         }
 
         public BaseResponse DeleteProduct(int id)
         {
-            var product = _context.Products.Find(id);
+            var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
 
             if (product == null)
             {
@@ -73,16 +71,15 @@ namespace ShopManagement_Backend.Services
             }
 
             product.IsDeleted = true;
-            _context.Products.Update(product);
+            _productRepo.UpdateAsync(product);
 
-            var detailList = _context.ShopDetails.Where(c => c.ProductId == id).ToList();
+
+            var detailList = _shopDetailRepo.GetAllAsync(c => c.ProductId == id);
             foreach (var detail in detailList)
             {
                 detail.IsDeleted = true;
-                _context.ShopDetails.Update(detail);
+                _shopDetailRepo.UpdateAsync(detail);
             }
-
-            _context.SaveChanges();
 
             return new BaseResponse("Delete product successfully");
         }
@@ -92,8 +89,7 @@ namespace ShopManagement_Backend.Services
             var product = _mapper.Map<Product>(request);
             product.IsDeleted = false;
 
-            _context.Products.Add(product);
-            _context.SaveChanges();
+            _productRepo.AddAsync(product);
 
             return new BaseResponse("Create product successfully");
         }

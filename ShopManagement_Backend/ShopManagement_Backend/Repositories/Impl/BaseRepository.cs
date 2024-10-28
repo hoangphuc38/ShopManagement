@@ -42,7 +42,19 @@ namespace ShopManagement_Backend.Repositories.Impl
 
             if (entity == null)
             {
-                throw new KeyNotFoundException("Not found");
+                throw new KeyNotFoundException();
+            }
+
+            return DbSet.Where(predicate).FirstOrDefault();
+        }
+
+        public TEntity? GetFirstOrNullAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            var entity = DbSet.Where(predicate).FirstOrDefault();
+
+            if (entity == null)
+            {
+                return null;
             }
 
             return DbSet.Where(predicate).FirstOrDefault();

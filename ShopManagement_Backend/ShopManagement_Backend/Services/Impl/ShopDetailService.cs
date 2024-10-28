@@ -1,34 +1,40 @@
 ﻿using AutoMapper;
 using Azure.Core;
 using ShopManagement_Backend.Models;
+using ShopManagement_Backend.Repositories;
 using ShopManagement_Backend.Requests;
 using ShopManagement_Backend.Responses;
 
-namespace ShopManagement_Backend.Services
+namespace ShopManagement_Backend.Services.Impl
 {
-    public class ShopDetailService
+    public class ShopDetailService : IShopDetailService
     {
-        private readonly ShopManagementDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IShopDetailRepository _shopDetailRepo;
+        private readonly IProductRepository _productRepo;
+        private readonly IShopRepository _shopRepo;
 
-        public ShopDetailService(ShopManagementDbContext context, IMapper mapper)
+        public ShopDetailService(
+            IMapper mapper,
+            IShopDetailRepository shopDetailRepo,
+            IProductRepository productRepo,
+            IShopRepository shopRepo)
         {
-            _context = context;
             _mapper = mapper;
+            _shopDetailRepo = shopDetailRepo;
+            _productRepo = productRepo;
+            _shopRepo = shopRepo;
         }
 
         public BaseResponse GetAllOfShop(int id)
         {
-            var productList = _context.ShopDetails
-                                      .Where(c => c.ShopId == id && c.IsDeleted == false)
-                                      .ToList();
+            var shop = _shopRepo.GetFirstAsync(c => c.ShopId == id && c.IsDeleted == false);
+            var productList = _shopDetailRepo.GetAllAsync(c => c.ShopId == id && c.IsDeleted == false);
             var responseList = new List<ShopDetailResponse>();
 
             foreach (var product in productList)
             {
-                var productRes = _context.Products
-                                         .Where(c => c.ProductId == product.ProductId && c.IsDeleted == false)
-                                         .FirstOrDefault();
+                var productRes = _productRepo.GetFirstAsync(c => c.ProductId == product.ProductId && c.IsDeleted == false);
 
                 if (productRes == null)
                 {
@@ -45,13 +51,10 @@ namespace ShopManagement_Backend.Services
 
         public BaseResponse UpdateDetail(ShopDetailRequest request)
         {
-            var product = _context.Products
-                                  .Where(c => c.ProductId == request.ProductId && c.IsDeleted == false)
-                                  .FirstOrDefault();
+            var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && c.IsDeleted == false);
 
-            var shop = _context.Shops
-                               .Where(c => c.ShopId == request.ShopId && c.IsDeleted == false)
-                               .FirstOrDefault();
+            var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && c.IsDeleted == false);
+            
             if (product == null)
             {
                 return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
@@ -62,11 +65,9 @@ namespace ShopManagement_Backend.Services
                 return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
             }
 
-            var detail = _context.ShopDetails
-                                 .Where(c => c.ProductId == request.ProductId
+            var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == request.ProductId
                                  && c.ShopId == request.ShopId
-                                 && c.IsDeleted == false)
-                                 .FirstOrDefault();
+                                 && c.IsDeleted == false);
 
             if (detail == null)
             {
@@ -74,20 +75,17 @@ namespace ShopManagement_Backend.Services
             }
 
             detail.Quantity = request.Quantity;
-            
-            _context.ShopDetails.Update(detail);
-            _context.SaveChanges();
+
+            _shopDetailRepo.UpdateAsync(detail);
 
             return new BaseResponse("Update detail successfully");
         }
 
         public BaseResponse DeleteDetail(int shopID, int productID)
         {
-            var detail = _context.ShopDetails
-                                 .Where(c => c.ProductId == productID
+            var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == productID
                                  && c.ShopId == shopID
-                                 && c.IsDeleted == false)
-                                 .FirstOrDefault();
+                                 && c.IsDeleted == false);
 
             if (detail == null)
             {
@@ -96,21 +94,17 @@ namespace ShopManagement_Backend.Services
 
             detail.IsDeleted = true;
 
-            _context.ShopDetails.Update(detail);
-            _context.SaveChanges();
+            _shopDetailRepo.DeleteAsync(detail);
 
             return new BaseResponse("Delete detail successfully");
         }
 
         public BaseResponse CreateDetail(ShopDetailRequest request)
         {
-            var product = _context.Products
-                                  .Where(c => c.ProductId == request.ProductId && c.IsDeleted == false)
-                                  .FirstOrDefault();
+            var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && c.IsDeleted == false);
 
-            var shop = _context.Shops
-                               .Where(c => c.ShopId == request.ShopId && c.IsDeleted == false)
-                               .FirstOrDefault();
+            var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && c.IsDeleted == false);
+
             if (product == null)
             {
                 return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
@@ -121,11 +115,9 @@ namespace ShopManagement_Backend.Services
                 return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
             }
 
-            var detail = _context.ShopDetails
-                                 .Where(c => c.ProductId == request.ProductId
+            var detail = _shopDetailRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId
                                  && c.ShopId == request.ShopId
-                                 && c.IsDeleted == false)
-                                 .FirstOrDefault();
+                                 && c.IsDeleted == false);
 
             //If detail not exist, create new one
             if (detail == null)
@@ -133,8 +125,7 @@ namespace ShopManagement_Backend.Services
                 var shopDetail = _mapper.Map<ShopDetail>(request);
                 shopDetail.IsDeleted = false;
 
-                _context.ShopDetails.Add(shopDetail);
-                _context.SaveChanges();
+                _shopDetailRepo.AddAsync(shopDetail);
 
                 return new BaseResponse("Create new detail successfully");
             }
@@ -142,8 +133,7 @@ namespace ShopManagement_Backend.Services
             //If exist, add quantity for detail
             detail.Quantity += request.Quantity;
 
-            _context.ShopDetails.Update(detail);
-            _context.SaveChanges();
+            _shopDetailRepo.UpdateAsync(detail);
 
             return new BaseResponse("Add quantity for detail because this detail has existed");
         }

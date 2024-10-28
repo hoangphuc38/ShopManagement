@@ -26,8 +26,9 @@ builder.Services.AddScoped<IShopDetailRepository, ShopDetailRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<IProductService ,ProductService>();
-
-
+builder.Services.AddScoped<IShopService ,ShopService>();
+builder.Services.AddScoped<IShopDetailService ,ShopDetailService>();
+builder.Services.AddScoped<IUserService ,UserService>();
 
 var app = builder.Build();
 
