@@ -5,13 +5,13 @@ using System.Text.Json;
 
 namespace ShopManagement_Backend.Middlewares
 {
-    public class GlobalErrorHandlingMiddleware
+    public class ExceptionHandlingMiddleware
     {
-        private readonly ILogger<GlobalErrorHandlingMiddleware> _logger;
+        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
         private readonly RequestDelegate _next;
 
-        public GlobalErrorHandlingMiddleware(
-            ILogger<GlobalErrorHandlingMiddleware> logger,
+        public ExceptionHandlingMiddleware(
+            ILogger<ExceptionHandlingMiddleware> logger,
             RequestDelegate next)
         {
             _logger = logger;

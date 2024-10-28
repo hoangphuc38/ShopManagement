@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using ShopManagement_Backend.Middlewares;
 using ShopManagement_Backend.Models;
-using ShopManagement_Backend.Service;
+using ShopManagement_Backend.Repositories.Impl;
+using ShopManagement_Backend.Repositories;
 using ShopManagement_Backend.Services;
+using ShopManagement_Backend.Services.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,14 +20,18 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<ShopService>();
-builder.Services.AddScoped<ProductService>();   
-builder.Services.AddScoped<ShopDetailService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IShopRepository, ShopRepository>();
+builder.Services.AddScoped<IShopDetailRepository, ShopDetailRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+builder.Services.AddScoped<IProductService ,ProductService>();
+
+
 
 var app = builder.Build();
 
-app.UseMiddleware<GlobalErrorHandlingMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
