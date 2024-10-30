@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using ShopManagement_Backend.Middlewares;
 using ShopManagement_Backend.Models;
-using ShopManagement_Backend.Repositories.Impl;
 using ShopManagement_Backend.Repositories;
+using ShopManagement_Backend.Repositories.Interfaces;
 using ShopManagement_Backend.Services;
-using ShopManagement_Backend.Services.Impl;
+using ShopManagement_Backend.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

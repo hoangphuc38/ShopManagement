@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ShopManagement_Backend.Requests;
-using ShopManagement_Backend.Services.Interfaces;
+using ShopManagement_Backend_Application.Models.Product;
+using ShopManagement_Backend_Application.Services.Interfaces;
 
-namespace ShopManagement_Backend.Controllers
+namespace ShopManagement_Backend_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
