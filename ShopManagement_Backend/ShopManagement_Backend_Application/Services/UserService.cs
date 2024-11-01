@@ -37,7 +37,7 @@ namespace ShopManagement_Backend_Application.Services
 
         public BaseResponse GetUser(int id)
         {
-            var user = _userRepo.GetFirstAsync(c => c.Id == id);
+            var user = _userRepo.GetFirstAsync(c => c.Id == id && c.IsDeleted == false);
 
             if (user == null)
             {

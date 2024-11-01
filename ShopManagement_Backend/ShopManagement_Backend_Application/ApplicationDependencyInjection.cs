@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using ShopManagement_Backend_Application.MappingProfiles;
 using ShopManagement_Backend_Application.Services;
 using ShopManagement_Backend_Application.Services.Interfaces;
