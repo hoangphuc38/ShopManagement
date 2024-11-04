@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Product;
 using ShopManagement_Backend_Application.Services.Interfaces;
@@ -13,87 +14,138 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IMapper _mapper;
         private readonly IProductRepository _productRepo;
         private readonly IShopDetailRepository _shopDetailRepo;
+        private readonly ILogger<ProductService> _logger;
 
         public ProductService(
             IMapper mapper,
             IProductRepository productRepo,
-            IShopDetailRepository shopDetailRepo)
+            IShopDetailRepository shopDetailRepo,
+            ILogger<ProductService> logger)
         {
             _mapper = mapper;
             _productRepo = productRepo;
             _shopDetailRepo = shopDetailRepo;
+            _logger = logger;
         }
 
         public BaseResponse GetAll()
         {
-            var productList = _productRepo.GetAllAsync(t => t.IsDeleted == false);
-            var responseList = _mapper.Map<List<ProductResponse>>(productList);
+            try
+            {
+                _logger.LogInformation($"[GetAllProduct] Start to get all products.");
+                var productList = _productRepo.GetAllAsync(t => t.IsDeleted == false);
+                var responseList = _mapper.Map<List<ProductResponse>>(productList);
 
-            return new BaseResponse(responseList);
+                return new BaseResponse(responseList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"[GetAllProduct] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get all");
+            }
+            
         }
 
         public BaseResponse GetDetailProduct(int id)
         {
-            var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
-
-            if (product == null)
+            try
             {
-                return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                _logger.LogInformation($"[GetDetailProduct] Start to get detail product by ProductId: {id}.");
+                var product = _productRepo.GetFirstAsync(t => t.ProductId == id && t.IsDeleted == false);
+
+                if (product == null)
+                {
+                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                }
+
+                var response = _mapper.Map<ProductResponse>(product);
+
+                return new BaseResponse(response);
             }
-
-            var response = _mapper.Map<ProductResponse>(product);
-
-            return new BaseResponse(response);
+            catch (Exception ex)
+            {
+                _logger.LogError($"[GetDetailProduct] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get detail");
+            }
         }
 
         public BaseResponse UpdateProduct(int id, ProductRequest request)
         {
-            var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
-
-            if (product == null)
+            try
             {
-                return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                _logger.LogInformation($"[UpdateProduct] Start to update product by ProductId: {id}.");
+                var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
+
+                if (product == null)
+                {
+                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                }
+
+                product.ProductName = request.ProductName;
+                product.Price = request.Price;
+
+                _productRepo.UpdateAsync(product);
+
+                return new BaseResponse("Update product successfully");
             }
-
-            product.ProductName = request.ProductName;
-            product.Price = request.Price;
-
-            _productRepo.UpdateAsync(product);
-
-            return new BaseResponse("Update product successfully");
+            catch (Exception ex)
+            {
+                _logger.LogError($"[UpdateProduct] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to update");
+            }
+            
         }
 
         public BaseResponse DeleteProduct(int id)
         {
-            var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
-
-            if (product == null)
+            try
             {
-                return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                _logger.LogInformation($"[DeleteProduct] Start to delete product by ProductId: {id}.");
+                var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
+
+                if (product == null)
+                {
+                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                }
+
+                product.IsDeleted = true;
+                _productRepo.UpdateAsync(product);
+
+
+                var detailList = _shopDetailRepo.GetAllAsync(c => c.ProductId == id);
+                foreach (var detail in detailList)
+                {
+                    detail.IsDeleted = true;
+                    _shopDetailRepo.UpdateAsync(detail);
+                }
+
+                return new BaseResponse("Delete product successfully");
             }
-
-            product.IsDeleted = true;
-            _productRepo.UpdateAsync(product);
-
-
-            var detailList = _shopDetailRepo.GetAllAsync(c => c.ProductId == id);
-            foreach (var detail in detailList)
+            catch (Exception ex)
             {
-                detail.IsDeleted = true;
-                _shopDetailRepo.UpdateAsync(detail);
+                _logger.LogError($"[DeleteProduct] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to delete");
             }
-
-            return new BaseResponse("Delete product successfully");
+            
         }
 
         public BaseResponse CreateProduct(ProductRequest request)
         {
-            var product = _mapper.Map<Product>(request);
-            product.IsDeleted = false;
+            try
+            {
+                _logger.LogInformation($"[CreateProduct] Start to create product.");
+                var product = _mapper.Map<Product>(request);
+                product.IsDeleted = false;
 
-            _productRepo.AddAsync(product);
+                _productRepo.AddAsync(product);
 
-            return new BaseResponse("Create product successfully");
+                return new BaseResponse("Create product successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"[CreateProduct] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to create");
+            }          
         }
     }
 }

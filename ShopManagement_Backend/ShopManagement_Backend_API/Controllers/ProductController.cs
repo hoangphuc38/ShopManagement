@@ -46,9 +46,11 @@ namespace ShopManagement_Backend_API.Controllers
         [HttpGet("{productID}")]
         public IActionResult GetDetailProduct(int productID)
         {
-            if (!_cache.TryGetValue("ProductDetail", out BaseResponse? result))
+            if (!_cache.TryGetValue($"ProductDetail_{productID}", out BaseResponse? result))
             {
                 result = _productService.GetDetailProduct(productID);
+
+                Console.WriteLine($"Key: ProductDetail_{productID}");
 
                 _cache.Set("ProductDetail", result, _cacheEntryOptions);
             }
@@ -61,7 +63,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _productService.UpdateProduct(productID, product);
 
-            _cache.Remove("ProductDetail");
+            _cache.Remove($"ProductDetail_{productID}");
             _cache.Remove("ProductList");
 
             return StatusCode(result.Status, result);
@@ -72,7 +74,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _productService.DeleteProduct(productID);
 
-            _cache.Remove("ProductDetail");
+            _cache.Remove($"ProductDetail_{productID}");
             _cache.Remove("ProductList");
 
             return StatusCode(result.Status, result);
