@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Shop;
 using ShopManagement_Backend_Application.Services.Interfaces;
+using ShopManagement_Backend_Core.Entities;
 
 namespace ShopManagement_Backend_API.Controllers
 {
@@ -46,12 +47,7 @@ namespace ShopManagement_Backend_API.Controllers
         [HttpGet("{userId}")]
         public IActionResult GetShopOfUser(int userId)
         {
-            if (!_cache.TryGetValue("ShopDetail", out BaseResponse? result))
-            {
-                result = _shopService.GetShopOfUser(userId);
-
-                _cache.Set("ShopDetail", result, _cacheEntryOptions);
-            }
+            var result = _shopService.GetShopOfUser(userId);
 
             return StatusCode(result.Status, result);
         }
@@ -61,7 +57,6 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _shopService.UpdateShop(shopID, shop);
 
-            _cache.Remove("ShopDetail");
             _cache.Remove("ShopList");
 
             return StatusCode(result.Status, result);
@@ -73,7 +68,6 @@ namespace ShopManagement_Backend_API.Controllers
             var result = _shopService.DeleteShop(shopID);
 
             _cache.Remove("ShopList");
-            _cache.Remove("ShopDetail");
 
             return StatusCode(result.Status, result);
         }

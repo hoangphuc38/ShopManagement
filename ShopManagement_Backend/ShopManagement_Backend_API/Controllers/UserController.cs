@@ -46,11 +46,11 @@ namespace ShopManagement_Backend_API.Controllers
         [HttpGet("{id}")]
         public IActionResult GetUser(int id)
         {
-            if (!_cache.TryGetValue("UserDetail", out BaseResponse? result))
+            if (!_cache.TryGetValue($"UserDetail_{id}", out BaseResponse? result))
             {
                 result = _userService.GetUser(id);
 
-                _cache.Set("UserDetail", result, _cacheEntryOptions);
+                _cache.Set($"UserDetail_{id}", result, _cacheEntryOptions);
             }
 
             return StatusCode(result.Status, result);
@@ -61,7 +61,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _userService.UpdateUser(id, user);
 
-            _cache.Remove("UserDetail");
+            _cache.Remove($"UserDetail_{id}");
             _cache.Remove("UserList");
 
             return StatusCode(result.Status, result);
@@ -72,7 +72,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _userService.DeleteUser(id);
 
-            _cache.Remove("UserDetail");
+            _cache.Remove($"UserDetail_{id}");
             _cache.Remove("UserList");
 
             return StatusCode(result.Status, result);

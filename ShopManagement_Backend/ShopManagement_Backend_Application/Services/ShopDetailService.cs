@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.ShopDetail;
 using ShopManagement_Backend_Application.Services.Interfaces;
@@ -14,129 +15,168 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IShopDetailRepository _shopDetailRepo;
         private readonly IProductRepository _productRepo;
         private readonly IShopRepository _shopRepo;
+        private readonly ILogger<ShopDetailService> _logger;
 
         public ShopDetailService(
             IMapper mapper,
             IShopDetailRepository shopDetailRepo,
             IProductRepository productRepo,
-            IShopRepository shopRepo)
+            IShopRepository shopRepo,
+            ILogger<ShopDetailService> logger)
         {
             _mapper = mapper;
             _shopDetailRepo = shopDetailRepo;
             _productRepo = productRepo;
             _shopRepo = shopRepo;
+            _logger = logger;
         }
 
         public BaseResponse GetAllOfShop(int id)
         {
-            var shop = _shopRepo.GetFirstAsync(c => c.ShopId == id && c.IsDeleted == false);
-            var productList = _shopDetailRepo.GetAllAsync(c => c.ShopId == id && c.IsDeleted == false);
-            var responseList = new List<ShopDetailResponse>();
-
-            foreach (var product in productList)
+            try
             {
-                var productRes = _productRepo.GetFirstAsync(c => c.ProductId == product.ProductId && c.IsDeleted == false);
+                _logger.LogInformation($"[GetAllOfShop] Start to get all products in shop with id: {id}");
+                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == id && c.IsDeleted == false);
+                var productList = _shopDetailRepo.GetAllAsync(c => c.ShopId == id && c.IsDeleted == false);
+                var responseList = new List<ShopDetailResponse>();
 
-                if (productRes == null)
+                foreach (var product in productList)
                 {
-                    continue;
+                    var productRes = _productRepo.GetFirstAsync(c => c.ProductId == product.ProductId && c.IsDeleted == false);
+
+                    if (productRes == null)
+                    {
+                        continue;
+                    }
+
+                    var response = _mapper.Map<ShopDetailResponse>(product);
+
+                    responseList.Add(response);
                 }
 
-                var response = _mapper.Map<ShopDetailResponse>(product);
-
-                responseList.Add(response);
+                return new BaseResponse(responseList);
             }
-
-            return new BaseResponse(responseList);
+            catch (Exception ex)
+            {
+                _logger.LogError($"[GetAllOfShop] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get all of shop");
+            }
         }
 
         public BaseResponse UpdateDetail(ShopDetailRequest request)
         {
-            var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && c.IsDeleted == false);
-
-            var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && c.IsDeleted == false);
-
-            if (product == null)
+            try
             {
-                return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
-            }
+                _logger.LogInformation($"[UpdateDetail] Start to update detail in shop");
+                var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && c.IsDeleted == false);
 
-            if (shop == null)
+                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && c.IsDeleted == false);
+
+                if (product == null)
+                {
+                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                }
+
+                if (shop == null)
+                {
+                    return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
+                }
+
+                var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == request.ProductId
+                                     && c.ShopId == request.ShopId
+                                     && c.IsDeleted == false);
+
+                if (detail == null)
+                {
+                    return new BaseResponse(StatusCodes.Status404NotFound, "Not exist this detail");
+                }
+
+                detail.Quantity = request.Quantity;
+
+                _shopDetailRepo.UpdateAsync(detail);
+
+                return new BaseResponse("Update detail successfully");
+            }
+            catch (Exception ex)
             {
-                return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
+                _logger.LogError($"[UpdateDetail] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to update detail");
             }
-
-            var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == request.ProductId
-                                 && c.ShopId == request.ShopId
-                                 && c.IsDeleted == false);
-
-            if (detail == null)
-            {
-                return new BaseResponse(StatusCodes.Status404NotFound, "Not exist this detail");
-            }
-
-            detail.Quantity = request.Quantity;
-
-            _shopDetailRepo.UpdateAsync(detail);
-
-            return new BaseResponse("Update detail successfully");
         }
 
         public BaseResponse DeleteDetail(int shopID, int productID)
         {
-            var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == productID
+            try
+            {
+                _logger.LogInformation($"[DeleteDetail] Start to delete detail with productid {productID} in shop with id: {shopID}");
+                var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == productID
                                  && c.ShopId == shopID
                                  && c.IsDeleted == false);
 
-            if (detail == null)
-            {
-                return new BaseResponse(StatusCodes.Status404NotFound, "Not exist this detail");
+                if (detail == null)
+                {
+                    return new BaseResponse(StatusCodes.Status404NotFound, "Not exist this detail");
+                }
+
+                detail.IsDeleted = true;
+
+                _shopDetailRepo.DeleteAsync(detail);
+
+                return new BaseResponse("Delete detail successfully");
             }
-
-            detail.IsDeleted = true;
-
-            _shopDetailRepo.DeleteAsync(detail);
-
-            return new BaseResponse("Delete detail successfully");
+            catch (Exception ex)
+            {
+                _logger.LogError($"[DeleteDetail] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to delete detail");
+            }
         }
 
         public BaseResponse CreateDetail(ShopDetailRequest request)
         {
-            var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && c.IsDeleted == false);
-
-            var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && c.IsDeleted == false);
-
-            if (product == null)
+            try
             {
-                return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
-            }
+                _logger.LogInformation($"[CreateDetail] Start to create detail in shop");
+                var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && c.IsDeleted == false);
 
-            if (shop == null)
+                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && c.IsDeleted == false);
+
+                if (product == null)
+                {
+                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                }
+
+                if (shop == null)
+                {
+                    return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
+                }
+
+                var detail = _shopDetailRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId
+                                     && c.ShopId == request.ShopId
+                                     && c.IsDeleted == false);
+
+                //If detail not exist, create new one
+                if (detail == null)
+                {
+                    var shopDetail = _mapper.Map<ShopDetail>(request);
+                    shopDetail.IsDeleted = false;
+
+                    _shopDetailRepo.AddAsync(shopDetail);
+
+                    return new BaseResponse("Create new detail successfully");
+                }
+
+                //If exist, add quantity for detail
+                detail.Quantity += request.Quantity;
+
+                _shopDetailRepo.UpdateAsync(detail);
+
+                return new BaseResponse("Add quantity for detail because this detail has existed");
+            }
+            catch (Exception ex)
             {
-                return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
+                _logger.LogError($"[CreateDetail] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to create detail");
             }
-
-            var detail = _shopDetailRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId
-                                 && c.ShopId == request.ShopId
-                                 && c.IsDeleted == false);
-
-            //If detail not exist, create new one
-            if (detail == null)
-            {
-                var shopDetail = _mapper.Map<ShopDetail>(request);
-                shopDetail.IsDeleted = false;
-
-                _shopDetailRepo.AddAsync(shopDetail);
-
-                return new BaseResponse("Create new detail successfully");
-            }
-
-            //If exist, add quantity for detail
-            detail.Quantity += request.Quantity;
-
-            _shopDetailRepo.UpdateAsync(detail);
-
-            return new BaseResponse("Add quantity for detail because this detail has existed");
         }
     }
 }
