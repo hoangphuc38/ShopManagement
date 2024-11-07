@@ -18,55 +18,97 @@ namespace ShopManagement_Backend_DataAccess.Repositories
 
         public TEntity AddAsync(TEntity entity)
         {
-            var addedEntity = DbSet.Add(entity).Entity;
-            Context.SaveChanges();
+            try
+            {
+                var addedEntity = DbSet.Add(entity).Entity;
+                Context.SaveChanges();
 
-            return addedEntity;
+                return addedEntity;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public TEntity DeleteAsync(TEntity entity)
         {
-            var removedEntity = DbSet.Remove(entity).Entity;
-            Context.SaveChanges();
+            try
+            {
+                var removedEntity = DbSet.Remove(entity).Entity;
+                Context.SaveChanges();
 
-            return removedEntity;
+                return removedEntity;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            } 
         }
 
         public List<TEntity> GetAllAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return DbSet.Where(predicate).ToList();
+            try
+            {
+                return DbSet.Where(predicate).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public TEntity GetFirstAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            var entity = DbSet.Where(predicate).FirstOrDefault();
-
-            if (entity == null)
+            try
             {
-                throw new KeyNotFoundException();
-            }
+                var entity = DbSet.Where(predicate).FirstOrDefault();
 
-            return DbSet.Where(predicate).FirstOrDefault();
+                if (entity == null)
+                {
+                    throw new KeyNotFoundException();
+                }
+
+                return DbSet.Where(predicate).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }       
         }
 
         public TEntity? GetFirstOrNullAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            var entity = DbSet.Where(predicate).FirstOrDefault();
-
-            if (entity == null)
+            try
             {
-                return null;
-            }
+                var entity = DbSet.Where(predicate).FirstOrDefault();
 
-            return DbSet.Where(predicate).FirstOrDefault();
+                if (entity == null)
+                {
+                    return null;
+                }
+
+                return DbSet.Where(predicate).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public TEntity UpdateAsync(TEntity entity)
         {
-            DbSet.Update(entity);
-            Context.SaveChanges();
+            try
+            {
+                DbSet.Update(entity);
+                Context.SaveChanges();
 
-            return entity;
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }     
         }
     }
 }
