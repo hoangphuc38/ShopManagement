@@ -36,7 +36,7 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetAllUser] Start to get all users");
-                var userList = _userRepo.GetAllAsync(c => c.IsDeleted == false);
+                var userList = _userRepo.GetAllAsync(c => !c.IsDeleted);
                 var responseList = _mapper.Map<List<UserResponse>>(userList);
 
                 return new BaseResponse(responseList);
@@ -53,7 +53,7 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetUser] Start to get user with id: {id}");
-                var user = _userRepo.GetFirstAsync(c => c.Id == id && c.IsDeleted == false);
+                var user = _userRepo.GetFirstAsync(c => c.Id == id && !c.IsDeleted);
 
                 if (user == null)
                 {
@@ -75,7 +75,8 @@ namespace ShopManagement_Backend_Application.Services
         {
             try
             {
-                _logger.LogInformation($"[CreateUser] Start to create a user");
+                _logger.LogInformation($"[CreateUser] Start to create a user. " +
+                    $"UserName: {user.UserName}, FullName: {user.FullName}, Address: {user.Address}");
                 var newUser = _mapper.Map<User>(user);
                 newUser.IsDeleted = false;
                 newUser.SignUpDate = DateOnly.FromDateTime(DateTime.Now);
@@ -95,8 +96,9 @@ namespace ShopManagement_Backend_Application.Services
         {
             try
             {
-                _logger.LogInformation($"[UpdateUser]: Start to update a user with id: {id}");
-                var userUpdate = _userRepo.GetFirstAsync(c => c.Id == id);
+                _logger.LogInformation($"[UpdateUser]: Start to update a user with id: {id} " +
+                    $"UserName: {user.UserName}, FullName: {user.FullName}, Address: {user.Address}");
+                var userUpdate = _userRepo.GetFirstAsync(c => c.Id == id && !c.IsDeleted);
 
                 if (userUpdate == null)
                 {
@@ -125,7 +127,7 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[DeleteUser] Start to delete a user with id: {id}");
-                var user = _userRepo.GetFirstAsync(c => c.Id == id);
+                var user = _userRepo.GetFirstAsync(c => c.Id == id && !c.IsDeleted);
 
                 if (user == null)
                 {
@@ -135,13 +137,13 @@ namespace ShopManagement_Backend_Application.Services
                 user.IsDeleted = true;
                 _userRepo.UpdateAsync(user);
 
-                var shopList = _shopRepo.GetAllAsync(c => c.UserId == user.Id);
+                var shopList = _shopRepo.GetAllAsync(c => c.UserId == user.Id && !c.IsDeleted);
                 foreach (var shop in shopList)
                 {
                     shop.IsDeleted = true;
                     _shopRepo.UpdateAsync(shop);
 
-                    var shopDetail = _shopDetailRepo.GetAllAsync(c => c.ShopId == shop.ShopId);
+                    var shopDetail = _shopDetailRepo.GetAllAsync(c => c.ShopId == shop.ShopId && !c.IsDeleted);
                     foreach (var detail in shopDetail)
                     {
                         detail.IsDeleted = true;

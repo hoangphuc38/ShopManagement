@@ -33,7 +33,7 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetAllProduct] Start to get all products.");
-                var productList = _productRepo.GetAllAsync(t => t.IsDeleted == false);
+                var productList = _productRepo.GetAllAsync(t => !t.IsDeleted);
                 var responseList = _mapper.Map<List<ProductResponse>>(productList);
 
                 return new BaseResponse(responseList);
@@ -51,7 +51,7 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetDetailProduct] Start to get detail product by ProductId: {id}.");
-                var product = _productRepo.GetFirstAsync(t => t.ProductId == id && t.IsDeleted == false);
+                var product = _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
 
                 if (product == null)
                 {
@@ -73,8 +73,9 @@ namespace ShopManagement_Backend_Application.Services
         {
             try
             {
-                _logger.LogInformation($"[UpdateProduct] Start to update product by ProductId: {id}.");
-                var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
+                _logger.LogInformation($"[UpdateProduct] Start to update product with ProductId: {id}, " +
+                    $"ProductName: {request.ProductName}, Price: {request.Price}");
+                var product = _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
 
                 if (product == null)
                 {
@@ -101,7 +102,7 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[DeleteProduct] Start to delete product by ProductId: {id}.");
-                var product = _productRepo.GetFirstAsync(t => t.ProductId == id);
+                var product = _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
 
                 if (product == null)
                 {
@@ -112,7 +113,7 @@ namespace ShopManagement_Backend_Application.Services
                 _productRepo.UpdateAsync(product);
 
 
-                var detailList = _shopDetailRepo.GetAllAsync(c => c.ProductId == id);
+                var detailList = _shopDetailRepo.GetAllAsync(c => c.ProductId == id && !c.IsDeleted);
                 foreach (var detail in detailList)
                 {
                     detail.IsDeleted = true;
@@ -133,7 +134,8 @@ namespace ShopManagement_Backend_Application.Services
         {
             try
             {
-                _logger.LogInformation($"[CreateProduct] Start to create product.");
+                _logger.LogInformation($"[CreateProduct] Start to create product. " +
+                    $"ProductName: {request.ProductName}, Price: {request.Price}");
                 var product = _mapper.Map<Product>(request);
                 product.IsDeleted = false;
 

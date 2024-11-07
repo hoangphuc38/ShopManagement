@@ -36,13 +36,13 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetAllOfShop] Start to get all products in shop with id: {id}");
-                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == id && c.IsDeleted == false);
-                var productList = _shopDetailRepo.GetAllAsync(c => c.ShopId == id && c.IsDeleted == false);
+                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == id && !c.IsDeleted);
+                var productList = _shopDetailRepo.GetAllAsync(c => c.ShopId == id && !c.IsDeleted);
                 var responseList = new List<ShopDetailResponse>();
 
                 foreach (var product in productList)
                 {
-                    var productRes = _productRepo.GetFirstAsync(c => c.ProductId == product.ProductId && c.IsDeleted == false);
+                    var productRes = _productRepo.GetFirstAsync(c => c.ProductId == product.ProductId && !c.IsDeleted);
 
                     if (productRes == null)
                     {
@@ -67,10 +67,11 @@ namespace ShopManagement_Backend_Application.Services
         {
             try
             {
-                _logger.LogInformation($"[UpdateDetail] Start to update detail in shop");
-                var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && c.IsDeleted == false);
+                _logger.LogInformation($"[UpdateDetail] Start to update detail in shop. " +
+                    $"ShopID: {request.ShopId}, ProductID: {request.ProductId}, Quantity: {request.Quantity}");
+                var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
 
-                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && c.IsDeleted == false);
+                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
 
                 if (product == null)
                 {
@@ -84,7 +85,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == request.ProductId
                                      && c.ShopId == request.ShopId
-                                     && c.IsDeleted == false);
+                                     && !c.IsDeleted);
 
                 if (detail == null)
                 {
@@ -111,7 +112,7 @@ namespace ShopManagement_Backend_Application.Services
                 _logger.LogInformation($"[DeleteDetail] Start to delete detail with productid {productID} in shop with id: {shopID}");
                 var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == productID
                                  && c.ShopId == shopID
-                                 && c.IsDeleted == false);
+                                 && !c.IsDeleted);
 
                 if (detail == null)
                 {
@@ -135,10 +136,11 @@ namespace ShopManagement_Backend_Application.Services
         {
             try
             {
-                _logger.LogInformation($"[CreateDetail] Start to create detail in shop");
-                var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && c.IsDeleted == false);
+                _logger.LogInformation($"[CreateDetail] Start to create detail in shop. " +
+                    $"ShopID: {request.ShopId}, ProductID: {request.ProductId}, Quantity: {request.Quantity}");
+                var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
 
-                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && c.IsDeleted == false);
+                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
 
                 if (product == null)
                 {
@@ -152,7 +154,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 var detail = _shopDetailRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId
                                      && c.ShopId == request.ShopId
-                                     && c.IsDeleted == false);
+                                     && !c.IsDeleted);
 
                 //If detail not exist, create new one
                 if (detail == null)
