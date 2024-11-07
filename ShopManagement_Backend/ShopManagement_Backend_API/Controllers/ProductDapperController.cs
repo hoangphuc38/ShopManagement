@@ -1,22 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using ShopManagement_Backend_Application.DapperServices.Interfaces;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Product;
-using ShopManagement_Backend_Application.Services.Interfaces;
 
 namespace ShopManagement_Backend_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class ProductDapperController : ControllerBase
     {
-        private readonly IProductService _productService;
+        private readonly IProductDapService _productService;
         private readonly IMemoryCache _cache;
         private readonly IConfiguration _config;
         private readonly MemoryCacheEntryOptions _cacheEntryOptions;
 
-        public ProductController(
-            IProductService productService,
+        public ProductDapperController(
+            IProductDapService productService,
             IMemoryCache cache,
             IConfiguration config)
         {
@@ -28,18 +28,18 @@ namespace ShopManagement_Backend_API.Controllers
                 AbsoluteExpirationRelativeToNow = TimeSpan.Parse(_config["CacheEntryOptions:AbsoluteExpiration"]),
                 SlidingExpiration = TimeSpan.Parse(_config["CacheEntryOptions:SlidingExpiration"]),
             };
-        }        
+        }
 
         [HttpGet]
         public IActionResult GetAll()
         {
-            if (!_cache.TryGetValue("ProductList", out BaseResponse? result))
+            if (!_cache.TryGetValue("ProductList_Dapper", out BaseResponse? result))
             {
                 result = _productService.GetAll();
 
-                _cache.Set("ProductList", result, _cacheEntryOptions);
+                _cache.Set("ProductList_Dapper", result, _cacheEntryOptions);
             }
-            
+
             return StatusCode(result.Status, result);
         }
 
@@ -49,8 +49,6 @@ namespace ShopManagement_Backend_API.Controllers
             if (!_cache.TryGetValue($"ProductDetail_{productID}", out BaseResponse? result))
             {
                 result = _productService.GetDetailProduct(productID);
-
-                Console.WriteLine($"Key: ProductDetail_{productID}");
 
                 _cache.Set($"ProductDetail_{productID}", result, _cacheEntryOptions);
             }
@@ -64,7 +62,17 @@ namespace ShopManagement_Backend_API.Controllers
             var result = _productService.UpdateProduct(productID, product);
 
             _cache.Remove($"ProductDetail_{productID}");
-            _cache.Remove("ProductList");
+            _cache.Remove("ProductList_Dapper");
+
+            return StatusCode(result.Status, result);
+        }
+
+        [HttpPost]
+        public IActionResult CreateProduct(ProductRequest product)
+        {
+            var result = _productService.CreateProduct(product);
+
+            _cache.Remove("ProductList_Dapper");
 
             return StatusCode(result.Status, result);
         }
@@ -75,17 +83,7 @@ namespace ShopManagement_Backend_API.Controllers
             var result = _productService.DeleteProduct(productID);
 
             _cache.Remove($"ProductDetail_{productID}");
-            _cache.Remove("ProductList");
-
-            return StatusCode(result.Status, result);
-        }
-
-        [HttpPost]
-        public IActionResult CreateProduct(ProductRequest product)
-        {
-            var result = _productService.CreateProduct(product);
-
-            _cache.Remove("ProductList");
+            _cache.Remove("ProductList_Dapper");
 
             return StatusCode(result.Status, result);
         }
