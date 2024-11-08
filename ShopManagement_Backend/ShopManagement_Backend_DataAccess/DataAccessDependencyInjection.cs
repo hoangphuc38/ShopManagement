@@ -31,6 +31,7 @@ namespace ShopManagement_Backend_DataAccess
 
             //Dapper
             services.AddScoped<IProductDapRepository, ProductDapRepository>();
+            services.AddScoped<IShopDetailDapRepository, ShopDetailDapRepository>();
         }
 
         private static void AddDatabase(this IServiceCollection services, IConfiguration configuration)

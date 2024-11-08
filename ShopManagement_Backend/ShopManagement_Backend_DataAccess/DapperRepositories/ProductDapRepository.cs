@@ -9,57 +9,83 @@ namespace ShopManagement_Backend_DataAccess.DapperRepositories
     public class ProductDapRepository : IProductDapRepository
     {
         protected readonly ShopManagementDapperContext Context;
+        protected readonly ILogger<ProductDapRepository> _logger;
 
-        public ProductDapRepository(ShopManagementDapperContext context)
+        public ProductDapRepository(
+            ShopManagementDapperContext context,
+            ILogger<ProductDapRepository> logger)
         {
             Context = context;
+            _logger = logger;   
         }
 
         public int AddAsync(Product entity)
         {
-            try
+            using (var connection = Context.CreateConnection())
             {
-                using var connection = Context.CreateConnection();
+                _logger.LogInformation($"[AddAsyncProduct] Start to connect to db");
+                var transaction = connection.BeginTransaction();
 
-                return connection.Execute(
-                "INSERT INTO PRODUCT (ProductName, Price, IsDeleted) VALUES (@ProductName, @Price, @IsDeleted)",
-                entity);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
+                var sqlQuery = $"INSERT INTO PRODUCT (ProductName, Price, IsDeleted) " +
+                    $"VALUES (@ProductName, @Price, @IsDeleted)";
+
+                try
+                {
+                    var recordChanges = connection.Execute(sqlQuery, entity);
+                    transaction.Commit();
+
+                    return recordChanges;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"[AddAsyncProduct] Error: {ex.Message}");
+                    transaction.Rollback();
+                    return 0;
+                }
             }
         }
 
         public int DeleteAsync(Product entity)
         {
-            try
+            using (var connection = Context.CreateConnection())
             {
-                using var connection = Context.CreateConnection();
+                _logger.LogInformation($"[DeleteAsyncProduct] Start to connect to db");
+                var transaction = connection.BeginTransaction();
 
-                return connection.Execute(
-                    $"UPDATE PRODUCT SET IsDeleted = 1 WHERE ProductId = @ProductId; " +
-                    "UPDATE SHOPDETAIL SET IsDeleted = 1 WHERE ProductId = @ProductId;",
-                    entity);
+                var sqlQuery = "UPDATE PRODUCT SET IsDeleted = 1 WHERE ProductId = @ProductId";
+
+                try
+                {
+                    var recordChanges = connection.Execute(sqlQuery, entity);
+                    transaction.Commit();
+
+                    return recordChanges;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"[DeleteAsyncProduct] Error: {ex.Message}");
+                    transaction.Rollback();
+                    return 0;
+                }
             }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-            
         }
 
         public IEnumerable<Product> GetAllAsync()
         {
             try
             {
+                _logger.LogInformation($"[GetAllAsyncProduct] Start to connect to db");
                 using var connection = Context.CreateConnection();
 
-                return connection.Query<Product>(
-                    "SELECT ProductID, ProductName, Price FROM PRODUCT WHERE IsDeleted = 0");
+                var sqlQuery = "SELECT ProductID, ProductName, Price FROM PRODUCT WHERE IsDeleted = 0";
+
+                var productList = connection.Query<Product>(sqlQuery);
+
+                return productList;
             }
             catch (Exception ex)
             {
+                _logger.LogError($"[GetAllAsyncProduct] Error: {ex.Message}");
                 throw new Exception(ex.Message);
             }
         }
@@ -68,32 +94,45 @@ namespace ShopManagement_Backend_DataAccess.DapperRepositories
         {
             try
             {
+                _logger.LogInformation($"[GetFirstOrNullAsyncProduct] Start to connect to db with id: {id}");
                 using var connection = Context.CreateConnection();
 
-                return connection.QueryFirstOrDefault<Product>(
-                    "SELECT ProductID, ProductName, Price FROM PRODUCT WHERE ProductID = @Id AND IsDeleted = 0",
-                    new { id });
+                var sqlQuery = "SELECT ProductID, ProductName, Price FROM PRODUCT WHERE ProductID = @Id AND IsDeleted = 0";
+
+                var product = connection.QueryFirstOrDefault<Product>(sqlQuery, new { id });
+
+                return product;
             }
             catch (Exception ex)
             {
+                _logger.LogError($"[GetFirstOrNullAsyncProduct] Error: {ex.Message}");
                 throw new Exception(ex.Message);
             }
         }
 
         public int UpdateAsync(Product entity)
         {
-            try
+            using (var connection = Context.CreateConnection())
             {
-                using var connection = Context.CreateConnection();
+                _logger.LogInformation($"[UpdateAsyncProduct] Start to connect to db");
+                var transaction = connection.BeginTransaction();
 
-                return connection.Execute(
-                    $"UPDATE PRODUCT SET ProductName = @ProductName, Price = @Price" +
-                    $"WHERE ProductId = @ProductId",
-                    entity);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
+                var sqlQuery = $"UPDATE PRODUCT SET ProductName = @ProductName, Price = @Price" +
+                    $"WHERE ProductId = @ProductId AND IsDeleted = 0";
+
+                try
+                {
+                    var recordChanges = connection.Execute(sqlQuery, entity);
+                    transaction.Commit();
+
+                    return recordChanges;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"[UpdateAsyncProduct] Error: {ex.Message}");
+                    transaction.Rollback();
+                    return 0;
+                }
             }
         }
     }

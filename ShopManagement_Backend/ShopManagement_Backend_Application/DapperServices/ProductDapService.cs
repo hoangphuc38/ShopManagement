@@ -13,15 +13,18 @@ namespace ShopManagement_Backend_Application.DapperServices
     {
         private readonly IMapper _mapper;
         private readonly IProductDapRepository _productRepo;
+        private readonly IShopDetailDapRepository _shopDetailDapRepo;
         private readonly ILogger<ProductDapService> _logger;    
         
         public ProductDapService(
             IMapper mapper,
             IProductDapRepository productRepo,
+            IShopDetailDapRepository shopDetailDapRepo,
             ILogger<ProductDapService> logger)
         {
             _mapper = mapper;
             _productRepo = productRepo;
+            _shopDetailDapRepo = shopDetailDapRepo;
             _logger = logger;
         }
 
@@ -65,11 +68,25 @@ namespace ShopManagement_Backend_Application.DapperServices
                     return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
                 }
 
-                var recordChanges = _productRepo.DeleteAsync(product);
+                //Delete product
+                var recordChangesProduct = _productRepo.DeleteAsync(product);
 
-                if (recordChanges == 0)
+                if (recordChangesProduct == 0)
                 {
                     return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to delete");
+                }
+
+                //Delete product in shop detail
+                var shopDetailList = _shopDetailDapRepo.GetAllAsyncByProductID(id);
+
+                foreach (var shopDetail in shopDetailList)
+                {
+                    var recordChangesShopDetail = _shopDetailDapRepo.DeleteAsync(shopDetail);
+
+                    if (recordChangesShopDetail == 0)
+                    {
+                        return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to delete");
+                    }
                 }
 
                 return new BaseResponse("Delte product successfully");
