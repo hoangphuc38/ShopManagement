@@ -12,33 +12,25 @@ namespace ShopManagement_Backend_API.Controllers
     public class ShopController : ControllerBase
     {
         private readonly IShopService _shopService;
-        private readonly IMemoryCache _cache;
-        private readonly IConfiguration _config;
-        private readonly MemoryCacheEntryOptions _cacheEntryOptions;
+        private readonly IMemoryCacheService _memoryCacheService;
 
         public ShopController(
             IShopService shopService,
-            IMemoryCache cache,
-            IConfiguration config)
+            IMemoryCacheService memoryCacheService)
         {
             _shopService = shopService;
-            _cache = cache;
-            _config = config;
-            _cacheEntryOptions = new MemoryCacheEntryOptions()
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.Parse(_config["CacheEntryOptions:AbsoluteExpiration"]),
-                SlidingExpiration = TimeSpan.Parse(_config["CacheEntryOptions:SlidingExpiration"]),
-            };
+            _memoryCacheService = memoryCacheService;
         }
 
         [HttpGet]
         public IActionResult GetAll()
         {
-            if (!_cache.TryGetValue("ShopList", out BaseResponse? result))
+            BaseResponse result = new BaseResponse();
+            if (!_memoryCacheService.CheckIfCacheExist("ShopList", result))
             {
                 result = _shopService.GetAll();
 
-                _cache.Set("ShopList", result, _cacheEntryOptions);
+                _memoryCacheService.SetCache("ShopList", result);
             }
 
             return StatusCode(result.Status, result);
@@ -57,7 +49,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _shopService.UpdateShop(shopID, shop);
 
-            _cache.Remove("ShopList");
+            _memoryCacheService.RemoveCache("ShopList");
 
             return StatusCode(result.Status, result);
         }
@@ -67,7 +59,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _shopService.DeleteShop(shopID);
 
-            _cache.Remove("ShopList");
+            _memoryCacheService.RemoveCache("ShopList");
 
             return StatusCode(result.Status, result);
         }
@@ -77,7 +69,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _shopService.CreateShop(userID, shop);
 
-            _cache.Remove("ShopList");
+            _memoryCacheService.RemoveCache("ShopList");
 
             return StatusCode(result.Status, result);
         }

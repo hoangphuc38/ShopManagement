@@ -5,6 +5,7 @@ using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.ShopDetail;
 using ShopManagement_Backend_Application.Services.Interfaces;
 using ShopManagement_Backend_Core.Entities;
+using ShopManagement_Backend_DataAccess.DapperRepositories.Interfaces;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 
 namespace ShopManagement_Backend_Application.Services
@@ -15,6 +16,7 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IShopDetailRepository _shopDetailRepo;
         private readonly IProductRepository _productRepo;
         private readonly IShopRepository _shopRepo;
+        private readonly IShopDetailDapRepository _shopDetailDapRepo;
         private readonly ILogger<ShopDetailService> _logger;
 
         public ShopDetailService(
@@ -22,12 +24,14 @@ namespace ShopManagement_Backend_Application.Services
             IShopDetailRepository shopDetailRepo,
             IProductRepository productRepo,
             IShopRepository shopRepo,
+            IShopDetailDapRepository shopDetailDapRepo,
             ILogger<ShopDetailService> logger)
         {
             _mapper = mapper;
             _shopDetailRepo = shopDetailRepo;
             _productRepo = productRepo;
             _shopRepo = shopRepo;
+            _shopDetailDapRepo = shopDetailDapRepo;
             _logger = logger;
         }
 
@@ -36,23 +40,27 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetAllOfShop] Start to get all products in shop with id: {id}");
-                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == id && !c.IsDeleted);
-                var productList = _shopDetailRepo.GetAllAsync(c => c.ShopId == id && !c.IsDeleted);
-                var responseList = new List<ShopDetailResponse>();
+                //var shop = _shopRepo.GetFirstAsync(c => c.ShopId == id && !c.IsDeleted);
+                //var productList = _shopDetailRepo.GetAllAsync(c => c.ShopId == id && !c.IsDeleted);
+                //var responseList = new List<ShopDetailResponse>();
 
-                foreach (var product in productList)
-                {
-                    var productRes = _productRepo.GetFirstAsync(c => c.ProductId == product.ProductId && !c.IsDeleted);
+                //foreach (var product in productList)
+                //{
+                //    var productRes = _productRepo.GetFirstAsync(c => c.ProductId == product.ProductId && !c.IsDeleted);
 
-                    if (productRes == null)
-                    {
-                        continue;
-                    }
+                //    if (productRes == null)
+                //    {
+                //        continue;
+                //    }
 
-                    var response = _mapper.Map<ShopDetailResponse>(product);
+                //    var response = _mapper.Map<ShopDetailResponse>(product);
 
-                    responseList.Add(response);
-                }
+                //    responseList.Add(response);
+                //}
+
+                //use Dapper
+                var response = _shopDetailDapRepo.GetAllAsyncByShopID(id);
+                var responseList = _mapper.Map<IEnumerable<ShopDetailResponse>>(response);
 
                 return new BaseResponse(responseList);
             }

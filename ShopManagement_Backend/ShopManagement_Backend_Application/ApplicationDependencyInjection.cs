@@ -24,6 +24,7 @@ namespace ShopManagement_Backend_Application
             services.AddScoped<IShopService, ShopService>();
             services.AddScoped<IShopDetailService, ShopDetailService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IMemoryCacheService, MemoryCacheService>();
 
             //Dapper
             services.AddScoped<IProductDapService, ProductDapService>();

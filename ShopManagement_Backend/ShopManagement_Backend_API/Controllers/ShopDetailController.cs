@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.ShopDetail;
@@ -11,33 +12,25 @@ namespace ShopManagement_Backend_API.Controllers
     public class ShopDetailController : ControllerBase
     {
         private IShopDetailService _shopDetailService;
-        private readonly IMemoryCache _cache;
-        private readonly IConfiguration _config;
-        private readonly MemoryCacheEntryOptions _cacheEntryOptions;
+        private readonly IMemoryCacheService _memoryCacheService;
 
         public ShopDetailController(
             IShopDetailService shopDetailService,
-            IMemoryCache cache,
-            IConfiguration config)
+            IMemoryCacheService memoryCacheService)
         {
             _shopDetailService = shopDetailService;
-            _cache = cache;
-            _config = config;
-            _cacheEntryOptions = new MemoryCacheEntryOptions()
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.Parse(_config["CacheEntryOptions:AbsoluteExpiration"]),
-                SlidingExpiration = TimeSpan.Parse(_config["CacheEntryOptions:SlidingExpiration"]),
-            };
+            _memoryCacheService = memoryCacheService;
         }
 
         [HttpGet("{shopID}")]
         public IActionResult GetAll(int shopID)
         {
-            if (!_cache.TryGetValue("Detail", out BaseResponse? result))
+            BaseResponse result = new BaseResponse();
+            if (!_memoryCacheService.CheckIfCacheExist($"Detail_{shopID}", result))
             {
                 result = _shopDetailService.GetAllOfShop(shopID);
 
-                _cache.Set("Detail", result, _cacheEntryOptions);
+                _memoryCacheService.SetCache($"Detail_{shopID}", result);
             }
 
             return StatusCode(result.Status, result);
@@ -48,7 +41,7 @@ namespace ShopManagement_Backend_API.Controllers
         {           
             var result = _shopDetailService.UpdateDetail(request);
 
-            _cache.Remove("Detail");
+            _memoryCacheService.RemoveCache($"Detail_{request.ShopId}");
 
             return StatusCode(result.Status, result);
         }
@@ -58,7 +51,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _shopDetailService.DeleteDetail(shopID, productID);
 
-            _cache.Remove("Detail");
+            _memoryCacheService.RemoveCache($"Detail_{shopID}");
 
             return StatusCode(result.Status, result);
         }
@@ -68,7 +61,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _shopDetailService.CreateDetail(detail);
 
-            _cache.Remove("Detail");
+            _memoryCacheService.RemoveCache($"Detail_{detail.ShopId}");
 
             return StatusCode(result.Status, result);
         }

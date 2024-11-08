@@ -11,33 +11,25 @@ namespace ShopManagement_Backend_API.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IMemoryCache _cache;
-        private readonly IConfiguration _config;
-        private readonly MemoryCacheEntryOptions _cacheEntryOptions;
+        private readonly IMemoryCacheService _memoryCacheService;
 
         public UserController(
             IUserService userService,
-            IMemoryCache cache,
-            IConfiguration config)
+            IMemoryCacheService memoryCacheService)
         {
             _userService = userService;
-            _cache = cache;
-            _config = config;
-            _cacheEntryOptions = new MemoryCacheEntryOptions()
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.Parse(_config["CacheEntryOptions:AbsoluteExpiration"]),
-                SlidingExpiration = TimeSpan.Parse(_config["CacheEntryOptions:SlidingExpiration"]),
-            };
+            _memoryCacheService = memoryCacheService;
         }
 
         [HttpGet]
         public IActionResult GetAllUser()
         {
-            if (!_cache.TryGetValue("UserList", out BaseResponse? result))
+            BaseResponse result = new BaseResponse();
+            if (!_memoryCacheService.CheckIfCacheExist("UserList", result))
             {
                 result = _userService.GetAllUser();
 
-                _cache.Set("UserList", result, _cacheEntryOptions);
+                _memoryCacheService.SetCache("UserList", result);
             }
 
             return StatusCode(result.Status, result);
@@ -46,11 +38,12 @@ namespace ShopManagement_Backend_API.Controllers
         [HttpGet("{id}")]
         public IActionResult GetUser(int id)
         {
-            if (!_cache.TryGetValue($"UserDetail_{id}", out BaseResponse? result))
+            BaseResponse result = new BaseResponse();
+            if (!_memoryCacheService.CheckIfCacheExist($"UserDetail_{id}", result))
             {
                 result = _userService.GetUser(id);
 
-                _cache.Set($"UserDetail_{id}", result, _cacheEntryOptions);
+                _memoryCacheService.SetCache($"UserDetail_{id}", result);
             }
 
             return StatusCode(result.Status, result);
@@ -61,8 +54,8 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _userService.UpdateUser(id, user);
 
-            _cache.Remove($"UserDetail_{id}");
-            _cache.Remove("UserList");
+            _memoryCacheService.RemoveCache($"UserDetail_{id}");
+            _memoryCacheService.RemoveCache("UserList");
 
             return StatusCode(result.Status, result);
         }
@@ -72,8 +65,8 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _userService.DeleteUser(id);
 
-            _cache.Remove($"UserDetail_{id}");
-            _cache.Remove("UserList");
+            _memoryCacheService.RemoveCache($"UserDetail_{id}");
+            _memoryCacheService.RemoveCache("UserList");
 
             return StatusCode(result.Status, result);
         }
@@ -83,7 +76,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _userService.CreateUser(user);
 
-            _cache.Remove("UserList");
+            _memoryCacheService.RemoveCache("UserList");
 
             return StatusCode(result.Status, result);
         }

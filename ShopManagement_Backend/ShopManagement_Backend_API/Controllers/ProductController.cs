@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Product;
 using ShopManagement_Backend_Application.Services.Interfaces;
+using ShopManagement_Backend_Core.Entities;
 
 namespace ShopManagement_Backend_API.Controllers
 {
@@ -11,33 +12,25 @@ namespace ShopManagement_Backend_API.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
-        private readonly IMemoryCache _cache;
-        private readonly IConfiguration _config;
-        private readonly MemoryCacheEntryOptions _cacheEntryOptions;
+        private readonly IMemoryCacheService _memoryCacheService;
 
         public ProductController(
             IProductService productService,
-            IMemoryCache cache,
-            IConfiguration config)
+            IMemoryCacheService memoryCacheService)
         {
             _productService = productService;
-            _cache = cache;
-            _config = config;
-            _cacheEntryOptions = new MemoryCacheEntryOptions()
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.Parse(_config["CacheEntryOptions:AbsoluteExpiration"]),
-                SlidingExpiration = TimeSpan.Parse(_config["CacheEntryOptions:SlidingExpiration"]),
-            };
+            _memoryCacheService = memoryCacheService;
         }        
 
         [HttpGet]
         public IActionResult GetAll()
         {
-            if (!_cache.TryGetValue("ProductList", out BaseResponse? result))
+            BaseResponse result = new BaseResponse();
+            if (!_memoryCacheService.CheckIfCacheExist("ProductList", result))
             {
                 result = _productService.GetAll();
 
-                _cache.Set("ProductList", result, _cacheEntryOptions);
+                _memoryCacheService.SetCache("ProductList", result);
             }
             
             return StatusCode(result.Status, result);
@@ -46,13 +39,12 @@ namespace ShopManagement_Backend_API.Controllers
         [HttpGet("{productID}")]
         public IActionResult GetDetailProduct(int productID)
         {
-            if (!_cache.TryGetValue($"ProductDetail_{productID}", out BaseResponse? result))
+            BaseResponse result = new BaseResponse();
+            if (!_memoryCacheService.CheckIfCacheExist($"ProductDetail_{productID}", result))
             {
                 result = _productService.GetDetailProduct(productID);
 
-                Console.WriteLine($"Key: ProductDetail_{productID}");
-
-                _cache.Set($"ProductDetail_{productID}", result, _cacheEntryOptions);
+                _memoryCacheService.SetCache($"ProductDetail_{productID}", result);
             }
 
             return StatusCode(result.Status, result);
@@ -63,8 +55,8 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _productService.UpdateProduct(productID, product);
 
-            _cache.Remove($"ProductDetail_{productID}");
-            _cache.Remove("ProductList");
+            _memoryCacheService.RemoveCache($"ProductDetail_{productID}");
+            _memoryCacheService.RemoveCache("ProductList");
 
             return StatusCode(result.Status, result);
         }
@@ -74,8 +66,8 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _productService.DeleteProduct(productID);
 
-            _cache.Remove($"ProductDetail_{productID}");
-            _cache.Remove("ProductList");
+            _memoryCacheService.RemoveCache($"ProductDetail_{productID}");
+            _memoryCacheService.RemoveCache("ProductList");
 
             return StatusCode(result.Status, result);
         }
@@ -85,7 +77,7 @@ namespace ShopManagement_Backend_API.Controllers
         {
             var result = _productService.CreateProduct(product);
 
-            _cache.Remove("ProductList");
+            _memoryCacheService.RemoveCache("ProductList");
 
             return StatusCode(result.Status, result);
         }
