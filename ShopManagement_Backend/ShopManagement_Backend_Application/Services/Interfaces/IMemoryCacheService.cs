@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShopManagement_Backend_Application.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +14,7 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
         bool CheckIfCacheExist(string cacheKey, object? result);
 
         void RemoveCache(string cacheKey);
+
+        BaseResponse? GetCacheData(string cacheKey);
     }
 }

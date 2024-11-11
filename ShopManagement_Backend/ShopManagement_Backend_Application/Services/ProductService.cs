@@ -15,17 +15,20 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IProductRepository _productRepo;
         private readonly IShopDetailRepository _shopDetailRepo;
         private readonly ILogger<ProductService> _logger;
+        private readonly IMemoryCacheService _memoryCacheService;
 
         public ProductService(
             IMapper mapper,
             IProductRepository productRepo,
             IShopDetailRepository shopDetailRepo,
-            ILogger<ProductService> logger)
+            ILogger<ProductService> logger,
+            IMemoryCacheService memoryCacheService)
         {
             _mapper = mapper;
             _productRepo = productRepo;
             _shopDetailRepo = shopDetailRepo;
             _logger = logger;
+            _memoryCacheService = memoryCacheService;
         }
 
         public BaseResponse GetAll()
@@ -33,10 +36,26 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetAllProduct] Start to get all products.");
-                var productList = _productRepo.GetAllAsync(t => !t.IsDeleted);
-                var responseList = _mapper.Map<List<ProductResponse>>(productList);
 
-                return new BaseResponse(responseList);
+                var response = _memoryCacheService.GetCacheData("ProductList");
+
+                if (response == null)
+                {
+                    var productList = _productRepo.GetAllAsync(t => !t.IsDeleted);
+
+                    var productMapperList = _mapper.Map<List<ProductResponse>>(productList);
+
+                    if (productMapperList == null)
+                    {
+                        return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get all");
+                    }
+
+                    response = new BaseResponse(productMapperList);
+
+                    _memoryCacheService.SetCache("ProductList", response);
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
@@ -51,16 +70,26 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetDetailProduct] Start to get detail product by ProductId: {id}.");
-                var product = _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
 
-                if (product == null)
+                var response = _memoryCacheService.GetCacheData($"Product_{id}");
+
+                if (response == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                    var product = _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
+
+                    if (product == null)
+                    {
+                        return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                    }
+
+                    var productMapper = _mapper.Map<ProductResponse>(product);
+
+                    response = new BaseResponse(productMapper);
+
+                    _memoryCacheService.SetCache($"Product_{id}", response);
                 }
-
-                var response = _mapper.Map<ProductResponse>(product);
-
-                return new BaseResponse(response);
+                
+                return response;
             }
             catch (Exception ex)
             {
@@ -75,6 +104,7 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogInformation($"[UpdateProduct] Start to update product with ProductId: {id}, " +
                     $"ProductName: {request.ProductName}, Price: {request.Price}");
+
                 var product = _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
 
                 if (product == null)
@@ -86,6 +116,9 @@ namespace ShopManagement_Backend_Application.Services
                 product.Price = request.Price;
 
                 _productRepo.UpdateAsync(product);
+
+                _memoryCacheService.RemoveCache($"Product_{id}");
+                _memoryCacheService.RemoveCache("ProductList");
 
                 return new BaseResponse("Update product successfully");
             }
@@ -120,6 +153,9 @@ namespace ShopManagement_Backend_Application.Services
                     _shopDetailRepo.UpdateAsync(detail);
                 }
 
+                _memoryCacheService.RemoveCache($"Product_{id}");
+                _memoryCacheService.RemoveCache("ProductList");
+
                 return new BaseResponse("Delete product successfully");
             }
             catch (Exception ex)
@@ -140,6 +176,8 @@ namespace ShopManagement_Backend_Application.Services
                 product.IsDeleted = false;
 
                 _productRepo.AddAsync(product);
+
+                _memoryCacheService.RemoveCache("ProductList");
 
                 return new BaseResponse("Create product successfully");
             }

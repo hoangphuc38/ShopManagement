@@ -16,19 +16,22 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IShopRepository _shopRepo;
         private readonly IShopDetailRepository _shopDetailRepo;
         private readonly ILogger<UserService> _logger;
+        private readonly IMemoryCacheService _memoryCacheService;
 
         public UserService(
             IMapper mapper,
             IUserRepository userRepo,
             IShopRepository shopRepo,
             IShopDetailRepository shopDetailRepo,
-            ILogger<UserService> logger)
+            ILogger<UserService> logger,
+            IMemoryCacheService memoryCacheService)
         {
             _mapper = mapper;
             _userRepo = userRepo;
             _shopRepo = shopRepo;
             _shopDetailRepo = shopDetailRepo;
             _logger = logger;
+            _memoryCacheService = memoryCacheService;
         }
 
         public BaseResponse GetAllUser()
@@ -36,10 +39,19 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetAllUser] Start to get all users");
-                var userList = _userRepo.GetAllAsync(c => !c.IsDeleted);
-                var responseList = _mapper.Map<List<UserResponse>>(userList);
+                var response = _memoryCacheService.GetCacheData("UserList");
 
-                return new BaseResponse(responseList);
+                if (response == null)
+                {
+                    var userList = _userRepo.GetAllAsync(c => !c.IsDeleted);
+                    var userListMapper = _mapper.Map<List<UserResponse>>(userList);
+
+                    response = new BaseResponse(userListMapper);
+
+                    _memoryCacheService.SetCache("UserList", response);
+                }
+                
+                return response;
             }
             catch (Exception ex)
             {
@@ -53,16 +65,25 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetUser] Start to get user with id: {id}");
-                var user = _userRepo.GetFirstAsync(c => c.Id == id && !c.IsDeleted);
+                var response = _memoryCacheService.GetCacheData($"User_{id}");
 
-                if (user == null)
+                if (response == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
+                    var user = _userRepo.GetFirstAsync(c => c.Id == id && !c.IsDeleted);
+
+                    if (user == null)
+                    {
+                        return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
+                    }
+
+                    var userMapper = _mapper.Map<UserResponse>(user);
+
+                    response = new BaseResponse(userMapper);
+
+                    _memoryCacheService.SetCache($"User_{id}", response);
                 }
 
-                var response = _mapper.Map<UserResponse>(user);
-
-                return new BaseResponse(response);
+                return response;
             }
             catch (Exception ex)
             {
@@ -82,6 +103,8 @@ namespace ShopManagement_Backend_Application.Services
                 newUser.SignUpDate = DateOnly.FromDateTime(DateTime.Now);
 
                 _userRepo.AddAsync(newUser);
+
+                _memoryCacheService.RemoveCache("UserList");
 
                 return new BaseResponse("Create user successfully");
             }
@@ -111,7 +134,8 @@ namespace ShopManagement_Backend_Application.Services
 
                 _userRepo.UpdateAsync(userUpdate);
 
-                var response = _mapper.Map<UserResponse>(userUpdate);
+                _memoryCacheService.RemoveCache("UserList");
+                _memoryCacheService.RemoveCache($"User_{id}");
 
                 return new BaseResponse("Update user successfully");
             }
@@ -150,6 +174,9 @@ namespace ShopManagement_Backend_Application.Services
                         _shopDetailRepo.DeleteAsync(detail);
                     }
                 }
+
+                _memoryCacheService.RemoveCache("UserList");
+                _memoryCacheService.RemoveCache($"User_{id}");
 
                 return new BaseResponse("Delete user successfully");
             }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_DataAccess.Persistance;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 using System.Linq.Expressions;
@@ -8,18 +9,23 @@ namespace ShopManagement_Backend_DataAccess.Repositories
     public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class
     {
         protected readonly ShopManagementDbContext Context;
+        protected readonly ILogger<BaseRepository<TEntity>> _logger;
         protected readonly DbSet<TEntity> DbSet;
 
-        protected BaseRepository(ShopManagementDbContext context)
+        protected BaseRepository(
+            ShopManagementDbContext context,
+            ILogger<BaseRepository<TEntity>> logger)
         {
             Context = context;
             DbSet = context.Set<TEntity>();
+            _logger = logger;
         }
 
         public TEntity AddAsync(TEntity entity)
         {
             try
             {
+                _logger.LogInformation("[AddAsync] Start to connect to db"); 
                 var addedEntity = DbSet.Add(entity).Entity;
                 Context.SaveChanges();
 
@@ -27,6 +33,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError($"[AddAsync] Error: {ex.Message}");
                 throw new Exception(ex.Message);
             }
         }
@@ -35,6 +42,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
         {
             try
             {
+                _logger.LogInformation("[DeleteAsync] Start to connect to db");
                 var removedEntity = DbSet.Remove(entity).Entity;
                 Context.SaveChanges();
 
@@ -42,6 +50,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError($"[DeleteAsync] Error: {ex.Message}");
                 throw new Exception(ex.Message);
             } 
         }
@@ -54,6 +63,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError($"[GetAllAsync] Error: {ex.Message}");
                 throw new Exception(ex.Message);
             }
         }
@@ -73,6 +83,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError($"[GetFirstAsync] Error: {ex.Message}");
                 throw new Exception(ex.Message);
             }       
         }
@@ -92,11 +103,12 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError($"[GetFirstOrNullAsync] Error: {ex.Message}");
                 throw new Exception(ex.Message);
             }
         }
 
-        public TEntity UpdateAsync(TEntity entity)
+        public TEntity? UpdateAsync(TEntity entity)
         {
             try
             {
@@ -107,7 +119,9 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                _logger.LogError($"[GetFirstOrNullAsync] Error: {ex.Message}");
+
+                return null;
             }     
         }
     }

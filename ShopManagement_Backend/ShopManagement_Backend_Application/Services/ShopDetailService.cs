@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_Application.Models;
@@ -18,6 +19,7 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IShopRepository _shopRepo;
         private readonly IShopDetailDapRepository _shopDetailDapRepo;
         private readonly ILogger<ShopDetailService> _logger;
+        private readonly IMemoryCacheService _memoryCacheService;
 
         public ShopDetailService(
             IMapper mapper,
@@ -25,7 +27,8 @@ namespace ShopManagement_Backend_Application.Services
             IProductRepository productRepo,
             IShopRepository shopRepo,
             IShopDetailDapRepository shopDetailDapRepo,
-            ILogger<ShopDetailService> logger)
+            ILogger<ShopDetailService> logger,
+            IMemoryCacheService memoryCacheService)
         {
             _mapper = mapper;
             _shopDetailRepo = shopDetailRepo;
@@ -33,6 +36,7 @@ namespace ShopManagement_Backend_Application.Services
             _shopRepo = shopRepo;
             _shopDetailDapRepo = shopDetailDapRepo;
             _logger = logger;
+            _memoryCacheService = memoryCacheService;
         }
 
         public BaseResponse GetAllOfShop(int id)
@@ -40,29 +44,39 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetAllOfShop] Start to get all products in shop with id: {id}");
-                //var shop = _shopRepo.GetFirstAsync(c => c.ShopId == id && !c.IsDeleted);
-                //var productList = _shopDetailRepo.GetAllAsync(c => c.ShopId == id && !c.IsDeleted);
-                //var responseList = new List<ShopDetailResponse>();
 
-                //foreach (var product in productList)
-                //{
-                //    var productRes = _productRepo.GetFirstAsync(c => c.ProductId == product.ProductId && !c.IsDeleted);
+                var response = _memoryCacheService.GetCacheData($"ShopDetail_{id}");
 
-                //    if (productRes == null)
-                //    {
-                //        continue;
-                //    }
+                if (response == null)
+                {
+                    var shop = _shopRepo.GetFirstAsync(c => c.ShopId == id && !c.IsDeleted);
+                    var productList = _shopDetailRepo.GetAllAsync(c => c.ShopId == id && !c.IsDeleted);
+                    var detailList = new List<ShopDetailResponse>();
 
-                //    var response = _mapper.Map<ShopDetailResponse>(product);
+                    foreach (var product in productList)
+                    {
+                        var productRes = _productRepo.GetFirstAsync(c => c.ProductId == product.ProductId && !c.IsDeleted);
 
-                //    responseList.Add(response);
-                //}
+                        if (productRes == null)
+                        {
+                            continue;
+                        }
 
-                //use Dapper
-                var response = _shopDetailDapRepo.GetAllAsyncByShopID(id);
-                var responseList = _mapper.Map<IEnumerable<ShopDetailResponse>>(response);
+                        var productResMapper = _mapper.Map<ShopDetailResponse>(product);
 
-                return new BaseResponse(responseList);
+                        detailList.Add(productResMapper);
+                    }
+
+                    response = new BaseResponse(detailList);
+
+                    _memoryCacheService.SetCache($"ShopDetail_{id}", response);
+                }
+
+                ////use Dapper
+                //var response = _shopDetailDapRepo.GetAllAsyncByShopID(id);
+                //var responseList = _mapper.Map<IEnumerable<ShopDetailResponse>>(response);
+
+                return response;
             }
             catch (Exception ex)
             {
@@ -104,6 +118,8 @@ namespace ShopManagement_Backend_Application.Services
 
                 _shopDetailRepo.UpdateAsync(detail);
 
+                _memoryCacheService.RemoveCache($"Detail_{request.ShopId}");
+
                 return new BaseResponse("Update detail successfully");
             }
             catch (Exception ex)
@@ -130,6 +146,8 @@ namespace ShopManagement_Backend_Application.Services
                 detail.IsDeleted = true;
 
                 _shopDetailRepo.DeleteAsync(detail);
+
+                _memoryCacheService.RemoveCache($"Detail_{shopID}");
 
                 return new BaseResponse("Delete detail successfully");
             }
@@ -179,6 +197,8 @@ namespace ShopManagement_Backend_Application.Services
                 detail.Quantity += request.Quantity;
 
                 _shopDetailRepo.UpdateAsync(detail);
+
+                _memoryCacheService.RemoveCache($"Detail_{request.ShopId}");
 
                 return new BaseResponse("Add quantity for detail because this detail has existed");
             }

@@ -105,7 +105,10 @@ namespace ShopManagement_Backend_DataAccess.DapperRepositories
                         $"WHERE ProductID IN" +
                         $"(SELECT ProductID FROM SHOPDETAIL WHERE ShopID = @ShopID)";
 
-                using (var multi = connection.QueryMultiple(sqlQuery, new { ShopId = id }))
+                var parameters = new DynamicParameters();
+                parameters.Add("@ShopID", id);
+                var result = connection.QueryMultiple(sqlQuery, parameters);
+                using (var multi = connection.QueryMultiple(sqlQuery, parameters))
                 {
                     var detailList = multi.Read<ShopDetail>().ToList();
                     var productList = multi.Read<Product>().ToList();
@@ -139,27 +142,35 @@ namespace ShopManagement_Backend_DataAccess.DapperRepositories
 
         public int UpdateAsync(ShopDetail entity)
         {
-            using (var connection = Context.CreateConnection())
+            try
             {
-                _logger.LogInformation($"[UpdateAsyncShopDetail] Start to connect to db");
-                var transaction = connection.BeginTransaction();
-
-                var sqlQuery = $"UPDATE SHOPDETAIL SET Quantiy = @Quantity " +
-                    $"WHERE ShopID = @ShopID AND ProductID = @ProductID AND IsDeleted = 0";
-
-                try
+                using (var connection = Context.CreateConnection())
                 {
-                    var recordChanges = connection.Execute(sqlQuery, entity);
-                    transaction.Commit();
+                    _logger.LogInformation($"[UpdateAsyncShopDetail] Start to connect to db");
+                    var transaction = connection.BeginTransaction();
 
-                    return recordChanges;
+                    var sqlQuery = $"UPDATE SHOPDETAIL SET Quantiy = @Quantity " +
+                        $"WHERE ShopID = @ShopID AND ProductID = @ProductID AND IsDeleted = 0";
+
+                    try
+                    {
+                        var recordChanges = connection.Execute(sqlQuery, entity);
+                        transaction.Commit();
+
+                        return recordChanges;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"[UpdateAsyncShopDetail] Error: {ex.Message}");
+                        transaction.Rollback();
+                        return 0;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"[UpdateAsyncShopDetail] Error: {ex.Message}");
-                    transaction.Rollback();
-                    return 0;
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"[UpdateAsyncShopDetail] Error: {ex.Message}");
+                return 0;  
             }
         }
     }

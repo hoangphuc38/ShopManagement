@@ -16,19 +16,22 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IUserRepository _userRepo;
         private readonly IShopDetailRepository _shopDetailRepo;
         private readonly ILogger<ShopService> _logger;
+        private readonly IMemoryCacheService _memoryCacheService;
 
         public ShopService(
             IMapper mapper,
             IShopRepository shopRepo,
             IUserRepository userRepo,
             IShopDetailRepository shopDetailRepo,
-            ILogger<ShopService> logger)
+            ILogger<ShopService> logger,
+            IMemoryCacheService memoryCacheService)
         {
             _mapper = mapper;
             _shopRepo = shopRepo;
             _userRepo = userRepo;
             _shopDetailRepo = shopDetailRepo;
             _logger = logger;
+            _memoryCacheService = memoryCacheService;
         }
 
         public BaseResponse GetAll()
@@ -36,15 +39,25 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetAllShop] Start to get all shops.");
-                var shopList = _shopRepo.GetAllAsync(c => !c.IsDeleted);
+                var response = _memoryCacheService.GetCacheData("ShopList");
 
-                foreach (var shop in shopList)
+                if (response == null)
                 {
-                    var user = _userRepo.GetFirstAsync(c => c.Id == shop.UserId && !c.IsDeleted);
-                }
+                    var shopList = _shopRepo.GetAllAsync(c => !c.IsDeleted);
 
-                var responseList = _mapper.Map<List<ShopResponse>>(shopList);
-                return new BaseResponse(responseList);
+                    foreach (var shop in shopList)
+                    {
+                        var user = _userRepo.GetFirstAsync(c => c.Id == shop.UserId && !c.IsDeleted);
+                    }
+
+                    var shopListMapper = _mapper.Map<List<ShopResponse>>(shopList);
+
+                    response = new BaseResponse(shopListMapper);
+
+                    _memoryCacheService.SetCache("ShopList", response);
+                }
+                
+                return response;
             }
             catch (Exception ex)
             {
@@ -58,31 +71,40 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetShopOfUser] Start to get shops of user with id: {userID}.");
-                var shopList = _shopRepo.GetAllAsync(c => c.UserId == userID && !c.IsDeleted);
-                var responseList = new List<ShopResponse>();
+                var response = _memoryCacheService.GetCacheData($"Shop_{userID}");
 
-                if (shopList == null)
+                if (response == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
-                }
+                    var shopList = _shopRepo.GetAllAsync(c => c.UserId == userID && !c.IsDeleted);
+                    var responseShopList = new List<ShopResponse>();
 
-                foreach (var shop in shopList)
-                {
-                    var response = _mapper.Map<ShopResponse>(shop);
-                    var user = _userRepo.GetFirstAsync(c => c.Id == userID && !c.IsDeleted);
-
-                    if (user == null)
+                    if (shopList == null)
                     {
-                        return new BaseResponse(
-                            StatusCodes.Status404NotFound, "Not found owner of the shop");
+                        return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
                     }
 
-                    response.OwnerName = user.FullName;
+                    foreach (var shop in shopList)
+                    {
+                        var shopMapper = _mapper.Map<ShopResponse>(shop);
+                        var user = _userRepo.GetFirstAsync(c => c.Id == userID && !c.IsDeleted);
 
-                    responseList.Add(response);
+                        if (user == null)
+                        {
+                            return new BaseResponse(
+                                StatusCodes.Status404NotFound, "Not found owner of the shop");
+                        }
+
+                        shopMapper.OwnerName = user.FullName;
+
+                        responseShopList.Add(shopMapper);
+                    }
+
+                    response = new BaseResponse(responseShopList);
+
+                    _memoryCacheService.SetCache($"Shop_{userID}", response);
                 }
-
-                return new BaseResponse(responseList);
+                
+                return response;
             }
             catch (Exception ex)
             {
@@ -108,6 +130,9 @@ namespace ShopManagement_Backend_Application.Services
                 shop.ShopAddress = request.ShopAddress;
 
                 _shopRepo.UpdateAsync(shop);
+
+                _memoryCacheService.RemoveCache($"Shop_{shop.UserId}");
+                _memoryCacheService.RemoveCache("ShopList");
 
                 return new BaseResponse("Update shop successfully");
             }
@@ -137,6 +162,9 @@ namespace ShopManagement_Backend_Application.Services
                 shop.IsDeleted = false;
 
                 _shopRepo.AddAsync(shop);
+
+                _memoryCacheService.RemoveCache($"Shop_{userID}");
+                _memoryCacheService.RemoveCache("ShopList");
 
                 return new BaseResponse("Create new shop successfully");
             }
@@ -168,6 +196,9 @@ namespace ShopManagement_Backend_Application.Services
                     detail.IsDeleted = true;
                     _shopDetailRepo.UpdateAsync(detail);
                 }
+
+                _memoryCacheService.RemoveCache($"Shop_{shop.UserId}");
+                _memoryCacheService.RemoveCache("ShopList");
 
                 return new BaseResponse("Delete shop successfully");
             }

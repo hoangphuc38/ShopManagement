@@ -14,6 +14,6 @@ namespace ShopManagement_Backend_DataAccess.Repositories.Interfaces
 
         TEntity GetFirstAsync(Expression<Func<TEntity, bool>> predicate);
 
-        TEntity UpdateAsync(TEntity entity);
+        TEntity? UpdateAsync(TEntity entity);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,16 @@ namespace ShopManagement_Backend_Application.Services
         public bool CheckIfCacheExist(string cacheKey, object? result)
         {
             return _cache.TryGetValue(cacheKey, out result);
+        }
+
+        public BaseResponse? GetCacheData(string cacheKey)
+        {
+            if (_cache.TryGetValue(cacheKey, out BaseResponse? result))
+            {
+                return result;
+            }
+
+            return null;
         }
 
         public void SetCache(string cacheKey, object response)
