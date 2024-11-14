@@ -43,7 +43,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var shopList = _shopRepo.GetAllAsync(c => !c.IsDeleted);
+                    var shopList = _shopRepo.GetAllAsync(t => !t.IsDeleted);
 
                     foreach (var shop in shopList)
                     {

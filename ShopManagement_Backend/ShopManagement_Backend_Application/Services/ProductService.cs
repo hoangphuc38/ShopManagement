@@ -41,7 +41,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var productList = _productRepo.GetAllAsync(t => !t.IsDeleted);
+                    var productList = _productRepo.GetAllProducts();
 
                     var productMapperList = _mapper.Map<List<ProductResponse>>(productList);
 

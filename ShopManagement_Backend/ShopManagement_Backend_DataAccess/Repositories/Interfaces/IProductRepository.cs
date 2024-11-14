@@ -2,5 +2,8 @@
 
 namespace ShopManagement_Backend_DataAccess.Repositories.Interfaces
 {
-    public interface IProductRepository : IBaseRepository<Product> { }
+    public interface IProductRepository : IBaseRepository<Product>
+    {
+        IEnumerable<Product> GetAllProducts();
+    }
 }

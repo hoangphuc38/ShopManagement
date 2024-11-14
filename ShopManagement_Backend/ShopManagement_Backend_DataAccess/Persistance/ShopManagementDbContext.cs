@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShopManagement_Backend_Core.Entities;
+using System.Data.Common;
 
 namespace ShopManagement_Backend_DataAccess.Persistance
 {
@@ -21,6 +22,9 @@ namespace ShopManagement_Backend_DataAccess.Persistance
         public virtual DbSet<ShopDetail> ShopDetails { get; set; }
 
         public virtual DbSet<User> Users { get; set; }
+
+        //Dapper Connection
+        public DbConnection GetDbConnection() => Database.GetDbConnection();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
