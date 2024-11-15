@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Product;
 using ShopManagement_Backend_Application.Services.Interfaces;
 
