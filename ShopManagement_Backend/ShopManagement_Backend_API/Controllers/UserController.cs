@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.User;
 using ShopManagement_Backend_Application.Services.Interfaces;
@@ -7,6 +8,7 @@ namespace ShopManagement_Backend_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;

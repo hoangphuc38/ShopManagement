@@ -24,6 +24,8 @@ namespace ShopManagement_Backend_DataAccess
             services.AddScoped<IShopRepository, ShopRepository>();
             services.AddScoped<IShopDetailRepository, ShopDetailRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<ITokenRepository, TokenRepository>();
         }
 
         private static void AddDatabase(this IServiceCollection services, IConfiguration configuration)

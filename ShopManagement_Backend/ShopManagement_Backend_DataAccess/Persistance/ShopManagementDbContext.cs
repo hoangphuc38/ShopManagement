@@ -17,9 +17,13 @@ namespace ShopManagement_Backend_DataAccess.Persistance
 
         public virtual DbSet<Product> Products { get; set; }
 
+        public virtual DbSet<Role> Roles { get; set; }
+
         public virtual DbSet<Shop> Shops { get; set; }
 
         public virtual DbSet<ShopDetail> ShopDetails { get; set; }
+
+        public virtual DbSet<Token> Tokens { get; set; }
 
         public virtual DbSet<User> Users { get; set; }
 
@@ -36,6 +40,14 @@ namespace ShopManagement_Backend_DataAccess.Persistance
 
                 entity.Property(e => e.ProductId).HasColumnName("ProductID");
                 entity.Property(e => e.ProductName).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3A512745A2");
+
+                entity.Property(e => e.RoleId).HasColumnName("RoleID");
+                entity.Property(e => e.RoleName).HasMaxLength(100);
             });
 
             modelBuilder.Entity<Shop>(entity =>
@@ -76,6 +88,18 @@ namespace ShopManagement_Backend_DataAccess.Persistance
                     .HasConstraintName("FK_ShopID");
             });
 
+            modelBuilder.Entity<Token>(entity =>
+            {
+                entity.HasKey(e => e.TokenId).HasName("PK__Token__658FEE8A3D41F60B");
+
+                entity.ToTable("Token");
+
+                entity.Property(e => e.TokenId).HasColumnName("TokenID");
+                entity.Property(e => e.AccessToken).HasMaxLength(100);
+                entity.Property(e => e.ExpiredDate).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.RefreshToken).HasMaxLength(100);
+            });
+
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.Id).HasName("PK__Users__3214EC273255EA6F");
@@ -86,10 +110,15 @@ namespace ShopManagement_Backend_DataAccess.Persistance
                 entity.Property(e => e.Password)
                     .HasMaxLength(60)
                     .IsUnicode(false);
+                entity.Property(e => e.RoleId).HasColumnName("RoleID");
                 entity.Property(e => e.SignUpDate).HasDefaultValueSql("(getdate())");
                 entity.Property(e => e.UserName)
                     .HasMaxLength(60)
                     .IsUnicode(false);
+
+                entity.HasOne(d => d.Role).WithMany(p => p.Users)
+                    .HasForeignKey(d => d.RoleId)
+                    .HasConstraintName("FK_RoleID");
             });
 
             OnModelCreatingPartial(modelBuilder);

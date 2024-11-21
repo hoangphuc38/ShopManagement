@@ -1,3 +1,4 @@
+using ShopManagement_Backend_API;
 using ShopManagement_Backend_API.Middlewares;
 using ShopManagement_Backend_Application;
 using ShopManagement_Backend_DataAccess;
@@ -11,11 +12,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSwagger();
+
 builder.Services.AddDataAccess(builder.Configuration)
                 .AddApplication();
 
-builder.Services.AddMemoryCache();
+builder.Services.AddJwt(builder.Configuration);
 
+builder.Services.AddMemoryCache();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -26,6 +30,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
