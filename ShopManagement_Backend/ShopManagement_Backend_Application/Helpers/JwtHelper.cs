@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ShopManagement_Backend_Core.Entities;
-using ShopManagement_Backend_DataAccess.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 
@@ -36,8 +36,6 @@ namespace ShopManagement_Backend_Application.Helpers
                 );
 
             var token = new JwtSecurityToken(
-                //issuer: _config["JWT:ValidIssuer"],
-                //audience: _config["JWT:ValidAudience"],
                 expires: DateTime.Now.AddHours(2),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(
@@ -46,6 +44,30 @@ namespace ShopManagement_Backend_Application.Helpers
                 );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        public ClaimsPrincipal? GetTokenPrinciple(string token)
+        {
+            var securityKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_config["JWTConfiguration:SecretKey"]));
+
+            var validation = new TokenValidationParameters
+            {
+                IssuerSigningKey = securityKey,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateIssuerSigningKey = true,
+            };
+
+            return new JwtSecurityTokenHandler().ValidateToken(token, validation, out _);
         }
     }
 }

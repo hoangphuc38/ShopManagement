@@ -95,8 +95,7 @@ namespace ShopManagement_Backend_DataAccess.Persistance
                 entity.ToTable("Token");
 
                 entity.Property(e => e.TokenId).HasColumnName("TokenID");
-                entity.Property(e => e.AccessToken).HasMaxLength(100);
-                entity.Property(e => e.ExpiredDate).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.ExpiredDate);
                 entity.Property(e => e.RefreshToken).HasMaxLength(100);
             });
 

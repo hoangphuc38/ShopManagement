@@ -1,8 +1,10 @@
-﻿using BCrypt.Net;
+﻿using Azure.Core;
+using BCrypt.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_Application.Helpers;
 using ShopManagement_Backend_Application.Models;
+using ShopManagement_Backend_Application.Models.Token;
 using ShopManagement_Backend_Application.Models.User;
 using ShopManagement_Backend_Application.Services.Interfaces;
 using ShopManagement_Backend_Core.Entities;
@@ -119,6 +121,16 @@ namespace ShopManagement_Backend_Application.Services
                     FullName = user.FullName,
                     Role = userRoles.RoleName ?? "",
                 };
+
+                var refreshToken = new Token
+                {
+                    RefreshToken = _jwtHelper.GenerateRefreshToken(),
+                    ExpiredDate = DateTime.Now.AddDays(7),
+                };
+
+                _tokenRepo.AddAsync(refreshToken);
+
+                loginResponse.RefreshToken = refreshToken.RefreshToken;
                 
                 return new BaseResponse(loginResponse);
             }
@@ -126,6 +138,47 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogError($"[Login] Error: {ex.Message}");
                 return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to login user");
+            }
+        }
+
+        public BaseResponse RefreshToken(RefreshTokenRequest request)
+        {
+            try
+            {
+                _logger.LogInformation($"[RefreshToken] Start to refresh token");
+
+                var principle = _jwtHelper.GetTokenPrinciple(request.AccessToken);
+
+                var user = _userRepo.GetFirstOrNullAsync(c => c.FullName == principle.Identity.Name);
+
+                if (user == null)
+                {
+                    return new BaseResponse(StatusCodes.Status400BadRequest, "Not found user with that token");
+                }
+
+                var isRefreshTokenValid = _tokenRepo.GetFirstOrNullAsync(c => c.RefreshToken == request.RefreshToken);
+
+                if (isRefreshTokenValid == null)
+                {
+                    return new BaseResponse(StatusCodes.Status400BadRequest, "Not found refresh token, please login");
+                }
+
+                if (isRefreshTokenValid.ExpiredDate <= DateTime.Now)
+                {
+                    return new BaseResponse(StatusCodes.Status400BadRequest, "RefreshToken is not valid, please login again");
+                }
+
+                var response = new RefreshTokenResponse
+                {
+                    NewAccessToken = _jwtHelper.GenerateToken(user, request.RoleName)
+                };
+
+                return new BaseResponse(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"[RefreshToken] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to refresh token");
             }
         }
 
@@ -169,6 +222,30 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogError($"[Register] Error: {ex.Message}");
                 return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to register user");
+            }
+        }
+
+        public BaseResponse Logout(string refreshToken)
+        {
+            try
+            {
+                _logger.LogInformation($"[Logout] Start to logout");
+
+                var isRefreshTokenValid = _tokenRepo.GetFirstOrNullAsync(c => c.RefreshToken == refreshToken);
+
+                if (isRefreshTokenValid == null)
+                {
+                    return new BaseResponse(StatusCodes.Status400BadRequest, "User has already logged out");
+                }
+
+                _tokenRepo.DeleteAsync(isRefreshTokenValid);
+
+                return new BaseResponse("Logout successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"[Logout] Error: {ex.Message}");
+                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to logout");
             }
         }
     }

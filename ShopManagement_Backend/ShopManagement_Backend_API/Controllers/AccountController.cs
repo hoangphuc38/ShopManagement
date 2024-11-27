@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ShopManagement_Backend_Application.Models.Token;
 using ShopManagement_Backend_Application.Models.User;
 using ShopManagement_Backend_Application.Services.Interfaces;
 
@@ -32,6 +33,14 @@ namespace ShopManagement_Backend_API.Controllers
             return StatusCode(result.Status, result);
         }
 
+        [HttpPost("refresh-token")]
+        public IActionResult RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            var result = _accountService.RefreshToken(request);
+
+            return StatusCode(result.Status, result);
+        }
+
         [HttpPost("add-role")]
         public IActionResult AddRole(string role)
         {
@@ -44,6 +53,14 @@ namespace ShopManagement_Backend_API.Controllers
         public IActionResult AssignRole(string email, string role)
         {
             var result = _accountService.AssignRole(email, role);
+
+            return StatusCode(result.Status, result);
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout(string refreshToken)
+        {
+            var result = _accountService.Logout(refreshToken);
 
             return StatusCode(result.Status, result);
         }
