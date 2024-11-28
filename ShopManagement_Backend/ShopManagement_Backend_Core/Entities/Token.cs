@@ -10,4 +10,6 @@ public class Token
     public string? RefreshToken { get; set; }
 
     public DateTime? ExpiredDate { get; set; }
+
+    public int UserID { get; set; }
 }

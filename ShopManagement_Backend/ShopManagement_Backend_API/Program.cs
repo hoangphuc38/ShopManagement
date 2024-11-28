@@ -33,6 +33,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 
+app.UseMiddleware<AuthorizationMiddleware>();
+
 app.UseAuthorization();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

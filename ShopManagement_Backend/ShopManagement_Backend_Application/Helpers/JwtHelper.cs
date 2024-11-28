@@ -9,7 +9,7 @@ using System.Text;
 
 namespace ShopManagement_Backend_Application.Helpers
 {
-    public class JwtHelper
+    public class JwtHelper : IJwtHelper
     {
         private readonly IConfiguration _config;
 
@@ -56,6 +56,11 @@ namespace ShopManagement_Backend_Application.Helpers
 
         public ClaimsPrincipal? GetTokenPrinciple(string token)
         {
+            if (token == null)
+            {
+                return null;
+            }
+
             var securityKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_config["JWTConfiguration:SecretKey"]));
 

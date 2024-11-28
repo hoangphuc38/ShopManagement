@@ -15,14 +15,14 @@ namespace ShopManagement_Backend_Application.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly JwtHelper _jwtHelper;
+        private readonly IJwtHelper _jwtHelper;
         private readonly IUserRepository _userRepo;
         private readonly ITokenRepository _tokenRepo;
         private readonly IRoleRepository _roleRepo;
         private readonly ILogger<AccountService> _logger;
 
         public AccountService(
-            JwtHelper jwtHelper,
+            IJwtHelper jwtHelper,
             IUserRepository userRepo,
             ITokenRepository tokenRepo,
             IRoleRepository roleRepo,
@@ -126,6 +126,7 @@ namespace ShopManagement_Backend_Application.Services
                 {
                     RefreshToken = _jwtHelper.GenerateRefreshToken(),
                     ExpiredDate = DateTime.Now.AddDays(7),
+                    UserID = user.Id,
                 };
 
                 _tokenRepo.AddAsync(refreshToken);
@@ -156,7 +157,7 @@ namespace ShopManagement_Backend_Application.Services
                     return new BaseResponse(StatusCodes.Status400BadRequest, "Not found user with that token");
                 }
 
-                var isRefreshTokenValid = _tokenRepo.GetFirstOrNullAsync(c => c.RefreshToken == request.RefreshToken);
+                var isRefreshTokenValid = _tokenRepo.GetFirstOrNullAsync(c => c.UserID == user.Id);
 
                 if (isRefreshTokenValid == null)
                 {
@@ -225,13 +226,13 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse Logout(string refreshToken)
+        public BaseResponse Logout(int userID)
         {
             try
             {
                 _logger.LogInformation($"[Logout] Start to logout");
 
-                var isRefreshTokenValid = _tokenRepo.GetFirstOrNullAsync(c => c.RefreshToken == refreshToken);
+                var isRefreshTokenValid = _tokenRepo.GetFirstOrNullAsync(c => c.UserID == userID);
 
                 if (isRefreshTokenValid == null)
                 {

@@ -10,8 +10,6 @@ namespace ShopManagement_Backend_Application.Models.Token
     {
         public string AccessToken { get; set; }
 
-        public string RefreshToken { get; set; }
-
         public string RoleName { get; set; }
     }
 }

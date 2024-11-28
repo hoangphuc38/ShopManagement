@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using ShopManagement_Backend_API.CustomAttributes;
 using ShopManagement_Backend_Application.Models.Token;
 using ShopManagement_Backend_Application.Models.User;
 using ShopManagement_Backend_Application.Services.Interfaces;
@@ -8,6 +8,7 @@ namespace ShopManagement_Backend_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
@@ -26,6 +27,7 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymousAttribute]
         public IActionResult Login([FromBody] LoginUser login)
         {
             var result = _accountService.Login(login);
@@ -58,9 +60,9 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpPost("logout")]
-        public IActionResult Logout(string refreshToken)
+        public IActionResult Logout(int userID)
         {
-            var result = _accountService.Logout(refreshToken);
+            var result = _accountService.Logout(userID);
 
             return StatusCode(result.Status, result);
         }

@@ -97,6 +97,7 @@ namespace ShopManagement_Backend_DataAccess.Persistance
                 entity.Property(e => e.TokenId).HasColumnName("TokenID");
                 entity.Property(e => e.ExpiredDate);
                 entity.Property(e => e.RefreshToken).HasMaxLength(100);
+                entity.Property(e => e.UserID).HasColumnName("UserID");
             });
 
             modelBuilder.Entity<User>(entity =>

@@ -16,6 +16,6 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 
         BaseResponse AssignRole(string email, string role);
 
-        BaseResponse Logout(string refreshToken);
+        BaseResponse Logout(int userID);
     }
 }
