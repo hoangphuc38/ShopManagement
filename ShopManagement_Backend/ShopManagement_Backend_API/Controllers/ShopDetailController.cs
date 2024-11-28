@@ -20,33 +20,33 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpGet("{shopID}")]
-        public IActionResult GetAll(int shopID)
+        public async Task<IActionResult> GetAll(int shopID)
         {
-            var result = _shopDetailService.GetAllOfShop(shopID);
+            var result = await _shopDetailService.GetAllOfShop(shopID);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPut]
-        public IActionResult UpdateDetail(ShopDetailRequest request)
+        public async Task<IActionResult> UpdateDetail(ShopDetailRequest request)
         {           
-            var result = _shopDetailService.UpdateDetail(request);
+            var result = await _shopDetailService.UpdateDetail(request);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpDelete("{shopID}/{productID}")]
-        public IActionResult DeleteProduct(int shopID, int productID)
+        public async Task<IActionResult> DeleteProduct(int shopID, int productID)
         {
-            var result = _shopDetailService.DeleteDetail(shopID, productID);
+            var result = await _shopDetailService.DeleteDetail(shopID, productID);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPost]
-        public IActionResult CreateDetail(ShopDetailRequest detail)
+        public async Task<IActionResult> CreateDetail(ShopDetailRequest detail)
         {
-            var result = _shopDetailService.CreateDetail(detail);
+            var result = await _shopDetailService.CreateDetail(detail);
 
             return StatusCode(result.Status, result);
         }

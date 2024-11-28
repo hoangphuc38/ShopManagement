@@ -27,7 +27,7 @@ namespace ShopManagement_Backend_API.Middlewares
 
                 var principle = jwtHelper.GetTokenPrinciple(token);
 
-                var userInfo = userRepo.GetFirstOrNullAsync(c => c.FullName == principle.Identity.Name);
+                var userInfo = await userRepo.GetFirstOrNullAsync(c => c.FullName == principle.Identity.Name);
 
                 if (userInfo != null)
                 {

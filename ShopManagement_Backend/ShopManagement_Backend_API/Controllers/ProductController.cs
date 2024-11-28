@@ -19,41 +19,41 @@ namespace ShopManagement_Backend_API.Controllers
         }        
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var result = _productService.GetAll();
+            var result = await _productService.GetAll();
             
             return StatusCode(result.Status, result);
         }
 
         [HttpGet("{productID}")]
-        public IActionResult GetDetailProduct(int productID)
+        public async Task<IActionResult> GetDetailProduct(int productID)
         {       
-            var result = _productService.GetDetailProduct(productID);
+            var result = await _productService.GetDetailProduct(productID);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPut("{productID}")]
-        public IActionResult UpdateProduct(int productID, ProductRequest product)
+        public async Task<IActionResult> UpdateProduct(int productID, ProductRequest product)
         {
-            var result = _productService.UpdateProduct(productID, product);
+            var result = await _productService.UpdateProduct(productID, product);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpDelete("{productID}")]
-        public IActionResult DeleteProduct(int productID)
+        public async Task<IActionResult> DeleteProduct(int productID)
         {
-            var result = _productService.DeleteProduct(productID);
+            var result = await _productService.DeleteProduct(productID);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPost]
-        public IActionResult CreateProduct(ProductRequest product)
+        public async Task<IActionResult> CreateProduct(ProductRequest product)
         {
-            var result = _productService.CreateProduct(product);
+            var result = await _productService.CreateProduct(product);
 
             return StatusCode(result.Status, result);
         }

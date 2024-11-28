@@ -19,50 +19,50 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] RegisterUser register)
+        public async Task<IActionResult> Register([FromBody] RegisterUser register)
         {
-            var result = _accountService.Register(register);
+            var result = await _accountService.Register(register);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPost("login")]
         [AllowAnonymousAttribute]
-        public IActionResult Login([FromBody] LoginUser login)
+        public async Task<IActionResult> Login([FromBody] LoginUser login)
         {
-            var result = _accountService.Login(login);
+            var result = await _accountService.Login(login);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPost("refresh-token")]
-        public IActionResult RefreshToken([FromBody] RefreshTokenRequest request)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
         {
-            var result = _accountService.RefreshToken(request);
+            var result = await _accountService.RefreshToken(request);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPost("add-role")]
-        public IActionResult AddRole(string role)
+        public async Task<IActionResult> AddRole(string role)
         {
-            var result = _accountService.AddRole(role);
+            var result = await _accountService.AddRole(role);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPost("assign-role")]
-        public IActionResult AssignRole(string email, string role)
+        public async Task<IActionResult> AssignRole(string email, string role)
         {
-            var result = _accountService.AssignRole(email, role);
+            var result = await _accountService.AssignRole(email, role);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPost("logout")]
-        public IActionResult Logout(int userID)
+        public async Task<IActionResult> Logout(int userID)
         {
-            var result = _accountService.Logout(userID);
+            var result = await _accountService.Logout(userID);
 
             return StatusCode(result.Status, result);
         }

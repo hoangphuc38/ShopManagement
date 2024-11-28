@@ -20,41 +20,41 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var result = _shopService.GetAll();
+            var result = await _shopService.GetAll();
 
             return StatusCode(result.Status, result);
         }
 
         [HttpGet("{userId}")]
-        public IActionResult GetShopOfUser(int userId)
+        public async Task<IActionResult> GetShopOfUser(int userId)
         {
-            var result = _shopService.GetShopOfUser(userId);
+            var result = await _shopService.GetShopOfUser(userId);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPut("{shopID}")]
-        public IActionResult UpdateShop(int shopID, ShopRequest shop)
+        public async Task<IActionResult> UpdateShop(int shopID, ShopRequest shop)
         {
-            var result = _shopService.UpdateShop(shopID, shop);
+            var result = await _shopService.UpdateShop(shopID, shop);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpDelete("{shopID}")]
-        public IActionResult DeleteShop(int shopID)
+        public async Task<IActionResult> DeleteShop(int shopID)
         {
-            var result = _shopService.DeleteShop(shopID);
+            var result = await _shopService.DeleteShop(shopID);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpPost("{userID}")]
-        public IActionResult CreateShop(int userID, ShopRequest shop)
+        public async Task<IActionResult> CreateShop(int userID, ShopRequest shop)
         {
-            var result = _shopService.CreateShop(userID, shop);
+            var result = await _shopService.CreateShop(userID, shop);
 
             return StatusCode(result.Status, result);
         }
