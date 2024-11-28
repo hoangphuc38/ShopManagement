@@ -34,7 +34,7 @@ namespace ShopManagement_Backend_Application.Services
             _memoryCacheService = memoryCacheService;
         }
 
-        public BaseResponse GetAll()
+        public async Task<BaseResponse> GetAll()
         {
             try
             {
@@ -43,7 +43,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var shopList = _shopRepo.GetAllShops();
+                    var shopList = await _shopRepo.GetAllShops();
 
                     var shopListMapper = _mapper.Map<List<ShopResponse>>(shopList);
 
@@ -61,7 +61,7 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse GetShopOfUser(int userID)
+        public async Task<BaseResponse> GetShopOfUser(int userID)
         {
             try
             {
@@ -70,7 +70,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var shopList = _shopRepo.GetAllAsync(c => c.UserId == userID && !c.IsDeleted);
+                    var shopList = await _shopRepo.GetAllAsync(c => c.UserId == userID && !c.IsDeleted);
                     var responseShopList = new List<ShopResponse>();
 
                     if (shopList == null)
@@ -81,7 +81,7 @@ namespace ShopManagement_Backend_Application.Services
                     foreach (var shop in shopList)
                     {
                         var shopMapper = _mapper.Map<ShopResponse>(shop);
-                        var user = _userRepo.GetFirstAsync(c => c.Id == userID && !c.IsDeleted);
+                        var user = await _userRepo.GetFirstAsync(c => c.Id == userID && !c.IsDeleted);
 
                         if (user == null)
                         {
@@ -108,13 +108,13 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse UpdateShop(int shopID, ShopRequest request)
+        public async Task<BaseResponse> UpdateShop(int shopID, ShopRequest request)
         {
             try
             {
                 _logger.LogInformation($"[UpdateShop] Start to update shop with id: {shopID} " +
                     $"ShopName: {request.ShopName}, ShopAddress: {request.ShopAddress}");
-                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == shopID && !c.IsDeleted);
+                var shop = await _shopRepo.GetFirstAsync(c => c.ShopId == shopID && !c.IsDeleted);
 
                 if (shop == null)
                 {
@@ -124,7 +124,7 @@ namespace ShopManagement_Backend_Application.Services
                 shop.ShopName = request.ShopName;
                 shop.ShopAddress = request.ShopAddress;
 
-                _shopRepo.UpdateAsync(shop);
+                await _shopRepo.UpdateAsync(shop);
 
                 _memoryCacheService.RemoveCache($"Shop_{shop.UserId}");
                 _memoryCacheService.RemoveCache("ShopList");
@@ -138,13 +138,13 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse CreateShop(int userID, ShopRequest request)
+        public async Task<BaseResponse> CreateShop(int userID, ShopRequest request)
         {
             try
             {
                 _logger.LogInformation($"[CreateShop] Start to create shop of user with id: {userID} " +
                     $"ShopName: {request.ShopName}, ShopAddress: {request.ShopAddress}");
-                var user = _userRepo.GetFirstAsync(c => c.Id == userID && !c.IsDeleted);
+                var user = await _userRepo.GetFirstAsync(c => c.Id == userID && !c.IsDeleted);
 
                 if (user == null)
                 {
@@ -156,7 +156,7 @@ namespace ShopManagement_Backend_Application.Services
                 shop.CreatedDate = DateOnly.FromDateTime(DateTime.Now);
                 shop.IsDeleted = false;
 
-                _shopRepo.AddAsync(shop);
+                await _shopRepo.AddAsync(shop);
 
                 _memoryCacheService.RemoveCache($"Shop_{userID}");
                 _memoryCacheService.RemoveCache("ShopList");
@@ -170,12 +170,12 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse DeleteShop(int shopID)
+        public async Task<BaseResponse> DeleteShop(int shopID)
         {
             try
             {
                 _logger.LogInformation($"[DeleteShop] Start to delete shop with id: {shopID}");
-                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == shopID && !c.IsDeleted);
+                var shop = await _shopRepo.GetFirstAsync(c => c.ShopId == shopID && !c.IsDeleted);
 
                 if (shop == null)
                 {
@@ -183,13 +183,13 @@ namespace ShopManagement_Backend_Application.Services
                 }
 
                 shop.IsDeleted = true;
-                _shopRepo.UpdateAsync(shop);
+                await _shopRepo.UpdateAsync(shop);
 
-                var detailList = _shopDetailRepo.GetAllAsync(c => c.ShopId == shopID && !c.IsDeleted);
+                var detailList = await _shopDetailRepo.GetAllAsync(c => c.ShopId == shopID && !c.IsDeleted);
                 foreach (var detail in detailList)
                 {
                     detail.IsDeleted = true;
-                    _shopDetailRepo.UpdateAsync(detail);
+                    await _shopDetailRepo.UpdateAsync(detail);
                 }
 
                 _memoryCacheService.RemoveCache($"Shop_{shop.UserId}");

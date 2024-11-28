@@ -5,12 +5,12 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 {
     public interface IShopDetailService
     {
-        BaseResponse GetAllOfShop(int id);
+        Task<BaseResponse> GetAllOfShop(int id);
 
-        BaseResponse UpdateDetail(ShopDetailRequest request);
+        Task<BaseResponse> UpdateDetail(ShopDetailRequest request);
 
-        BaseResponse DeleteDetail(int shopID, int productID);
+        Task<BaseResponse> DeleteDetail(int shopID, int productID);
 
-        BaseResponse CreateDetail(ShopDetailRequest request);
+        Task<BaseResponse> CreateDetail(ShopDetailRequest request);
     }
 }

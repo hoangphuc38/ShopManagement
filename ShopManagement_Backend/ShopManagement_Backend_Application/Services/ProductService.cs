@@ -31,7 +31,7 @@ namespace ShopManagement_Backend_Application.Services
             _memoryCacheService = memoryCacheService;
         }
 
-        public BaseResponse GetAll()
+        public async Task<BaseResponse> GetAll()
         {
             try
             {
@@ -41,7 +41,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var productList = _productRepo.GetAllProducts();
+                    var productList = await _productRepo.GetAllProducts();
 
                     var productMapperList = _mapper.Map<List<ProductResponse>>(productList);
 
@@ -65,7 +65,7 @@ namespace ShopManagement_Backend_Application.Services
             
         }
 
-        public BaseResponse GetDetailProduct(int id)
+        public async Task<BaseResponse> GetDetailProduct(int id)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var product = _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
+                    var product = await _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
 
                     if (product == null)
                     {
@@ -98,14 +98,14 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse UpdateProduct(int id, ProductRequest request)
+        public async Task<BaseResponse> UpdateProduct(int id, ProductRequest request)
         {
             try
             {
                 _logger.LogInformation($"[UpdateProduct] Start to update product with ProductId: {id}, " +
                     $"ProductName: {request.ProductName}, Price: {request.Price}");
 
-                var product = _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
+                var product = await _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
 
                 if (product == null)
                 {
@@ -115,7 +115,7 @@ namespace ShopManagement_Backend_Application.Services
                 product.ProductName = request.ProductName;
                 product.Price = request.Price;
 
-                _productRepo.UpdateAsync(product);
+                await _productRepo.UpdateAsync(product);
 
                 _memoryCacheService.RemoveCache($"Product_{id}");
                 _memoryCacheService.RemoveCache("ProductList");
@@ -130,12 +130,12 @@ namespace ShopManagement_Backend_Application.Services
             
         }
 
-        public BaseResponse DeleteProduct(int id)
+        public async Task<BaseResponse> DeleteProduct(int id)
         {
             try
             {
                 _logger.LogInformation($"[DeleteProduct] Start to delete product by ProductId: {id}.");
-                var product = _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
+                var product = await _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
 
                 if (product == null)
                 {
@@ -143,14 +143,14 @@ namespace ShopManagement_Backend_Application.Services
                 }
 
                 product.IsDeleted = true;
-                _productRepo.UpdateAsync(product);
+                await _productRepo.UpdateAsync(product);
 
 
-                var detailList = _shopDetailRepo.GetAllAsync(c => c.ProductId == id && !c.IsDeleted);
+                var detailList = await _shopDetailRepo.GetAllAsync(c => c.ProductId == id && !c.IsDeleted);
                 foreach (var detail in detailList)
                 {
                     detail.IsDeleted = true;
-                    _shopDetailRepo.UpdateAsync(detail);
+                    await _shopDetailRepo.UpdateAsync(detail);
                 }
 
                 _memoryCacheService.RemoveCache($"Product_{id}");
@@ -166,7 +166,7 @@ namespace ShopManagement_Backend_Application.Services
             
         }
 
-        public BaseResponse CreateProduct(ProductRequest request)
+        public async Task<BaseResponse> CreateProduct(ProductRequest request)
         {
             try
             {
@@ -175,7 +175,7 @@ namespace ShopManagement_Backend_Application.Services
                 var product = _mapper.Map<Product>(request);
                 product.IsDeleted = false;
 
-                _productRepo.AddAsync(product);
+                await _productRepo.AddAsync(product);
 
                 _memoryCacheService.RemoveCache("ProductList");
 

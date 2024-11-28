@@ -5,14 +5,14 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 {
     public interface IShopService
     {
-        BaseResponse GetAll();
+        Task<BaseResponse> GetAll();
 
-        BaseResponse GetShopOfUser(int userID);
+        Task<BaseResponse> GetShopOfUser(int userID);
 
-        BaseResponse UpdateShop(int shopID, ShopRequest request);
+        Task<BaseResponse> UpdateShop(int shopID, ShopRequest request);
 
-        BaseResponse CreateShop(int userID, ShopRequest request);
+        Task<BaseResponse> CreateShop(int userID, ShopRequest request);
 
-        BaseResponse DeleteShop(int shopID);
+        Task<BaseResponse> DeleteShop(int shopID);
     }
 }

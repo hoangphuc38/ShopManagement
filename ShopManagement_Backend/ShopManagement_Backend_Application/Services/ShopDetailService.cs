@@ -35,7 +35,7 @@ namespace ShopManagement_Backend_Application.Services
             _memoryCacheService = memoryCacheService;
         }
 
-        public BaseResponse GetAllOfShop(int id)
+        public async Task<BaseResponse> GetAllOfShop(int id)
         {
             try
             {
@@ -45,7 +45,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var shopDetail = _shopDetailRepo.GetAllAsyncByShopID(id);
+                    var shopDetail = await _shopDetailRepo.GetAllAsyncByShopID(id);
                     var shopDetailMapper = _mapper.Map<IEnumerable<ShopDetailResponse>>(shopDetail);
 
                     response = new BaseResponse(shopDetailMapper);
@@ -62,15 +62,15 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse UpdateDetail(ShopDetailRequest request)
+        public async Task<BaseResponse> UpdateDetail(ShopDetailRequest request)
         {
             try
             {
                 _logger.LogInformation($"[UpdateDetail] Start to update detail in shop. " +
                     $"ShopID: {request.ShopId}, ProductID: {request.ProductId}, Quantity: {request.Quantity}");
-                var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
+                var product = await _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
 
-                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
+                var shop = await _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
 
                 if (product == null)
                 {
@@ -82,7 +82,7 @@ namespace ShopManagement_Backend_Application.Services
                     return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
                 }
 
-                var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == request.ProductId
+                var detail = await _shopDetailRepo.GetFirstAsync(c => c.ProductId == request.ProductId
                                      && c.ShopId == request.ShopId
                                      && !c.IsDeleted);
 
@@ -93,7 +93,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 detail.Quantity = request.Quantity;
 
-                _shopDetailRepo.UpdateAsync(detail);
+                await _shopDetailRepo.UpdateAsync(detail);
 
                 _memoryCacheService.RemoveCache($"Detail_{request.ShopId}");
 
@@ -106,12 +106,12 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse DeleteDetail(int shopID, int productID)
+        public async Task<BaseResponse> DeleteDetail(int shopID, int productID)
         {
             try
             {
                 _logger.LogInformation($"[DeleteDetail] Start to delete detail with productid {productID} in shop with id: {shopID}");
-                var detail = _shopDetailRepo.GetFirstAsync(c => c.ProductId == productID
+                var detail = await _shopDetailRepo.GetFirstAsync(c => c.ProductId == productID
                                  && c.ShopId == shopID
                                  && !c.IsDeleted);
 
@@ -122,7 +122,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 detail.IsDeleted = true;
 
-                _shopDetailRepo.DeleteAsync(detail);
+                await _shopDetailRepo.DeleteAsync(detail);
 
                 _memoryCacheService.RemoveCache($"Detail_{shopID}");
 
@@ -135,15 +135,15 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse CreateDetail(ShopDetailRequest request)
+        public async Task<BaseResponse> CreateDetail(ShopDetailRequest request)
         {
             try
             {
                 _logger.LogInformation($"[CreateDetail] Start to create detail in shop. " +
                     $"ShopID: {request.ShopId}, ProductID: {request.ProductId}, Quantity: {request.Quantity}");
-                var product = _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
+                var product = await _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
 
-                var shop = _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
+                var shop = await _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
 
                 if (product == null)
                 {
@@ -155,7 +155,7 @@ namespace ShopManagement_Backend_Application.Services
                     return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
                 }
 
-                var detail = _shopDetailRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId
+                var detail = await _shopDetailRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId
                                      && c.ShopId == request.ShopId
                                      && !c.IsDeleted);
 
@@ -165,7 +165,7 @@ namespace ShopManagement_Backend_Application.Services
                     var shopDetail = _mapper.Map<ShopDetail>(request);
                     shopDetail.IsDeleted = false;
 
-                    _shopDetailRepo.AddAsync(shopDetail);
+                    await _shopDetailRepo.AddAsync(shopDetail);
 
                     return new BaseResponse("Create new detail successfully");
                 }
@@ -173,7 +173,7 @@ namespace ShopManagement_Backend_Application.Services
                 //If exist, add quantity for detail
                 detail.Quantity += request.Quantity;
 
-                _shopDetailRepo.UpdateAsync(detail);
+                await _shopDetailRepo.UpdateAsync(detail);
 
                 _memoryCacheService.RemoveCache($"Detail_{request.ShopId}");
 

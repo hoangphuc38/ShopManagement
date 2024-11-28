@@ -5,14 +5,14 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 {
     public interface IProductService
     {
-        BaseResponse GetAll();
+        Task<BaseResponse> GetAll();
 
-        BaseResponse GetDetailProduct(int id);
+        Task<BaseResponse> GetDetailProduct(int id);
 
-        BaseResponse UpdateProduct(int id, ProductRequest request);
+        Task<BaseResponse> UpdateProduct(int id, ProductRequest request);
 
-        BaseResponse DeleteProduct(int id);
+        Task<BaseResponse> DeleteProduct(int id);
 
-        BaseResponse CreateProduct(ProductRequest request);
+        Task<BaseResponse> CreateProduct(ProductRequest request);
     }
 }

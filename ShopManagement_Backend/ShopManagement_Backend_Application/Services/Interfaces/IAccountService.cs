@@ -6,16 +6,16 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 {
     public interface IAccountService
     {
-        BaseResponse Register(RegisterUser registerUser);
+        Task<BaseResponse> Register(RegisterUser registerUser);
 
-        BaseResponse Login(LoginUser loginUser);
+        Task<BaseResponse> Login(LoginUser loginUser);
 
-        BaseResponse RefreshToken(RefreshTokenRequest request);
+        Task<BaseResponse> RefreshToken(RefreshTokenRequest request);
 
-        BaseResponse AddRole(string role);
+        Task<BaseResponse> AddRole(string role);
 
-        BaseResponse AssignRole(string email, string role);
+        Task<BaseResponse> AssignRole(string email, string role);
 
-        BaseResponse Logout(int userID);
+        Task<BaseResponse> Logout(int userID);
     }
 }

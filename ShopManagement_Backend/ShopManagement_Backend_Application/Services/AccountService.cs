@@ -8,7 +8,6 @@ using ShopManagement_Backend_Application.Models.Token;
 using ShopManagement_Backend_Application.Models.User;
 using ShopManagement_Backend_Application.Services.Interfaces;
 using ShopManagement_Backend_Core.Entities;
-using ShopManagement_Backend_DataAccess.Identity;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 
 namespace ShopManagement_Backend_Application.Services
@@ -35,13 +34,13 @@ namespace ShopManagement_Backend_Application.Services
             _logger = logger;
         }
 
-        public BaseResponse AddRole(string role)
+        public async Task<BaseResponse> AddRole(string role)
         {
             try
             {
                 _logger.LogInformation($"[AddRole] Start to add role {role}");
 
-                var ifRoleExist = _roleRepo.GetFirstOrNullAsync(t => t.RoleName == role);
+                var ifRoleExist = await _roleRepo.GetFirstOrNullAsync(t => t.RoleName == role);
 
                 if (ifRoleExist != null)
                 {
@@ -53,7 +52,7 @@ namespace ShopManagement_Backend_Application.Services
                     RoleName = role,
                 };
 
-                _roleRepo.AddAsync(newRole);
+                await _roleRepo.AddAsync(newRole);
 
                 return new BaseResponse("Add role successfully");
             }
@@ -64,24 +63,24 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse AssignRole(string email, string role)
+        public async Task<BaseResponse> AssignRole(string email, string role)
         {
             try
             {
                 _logger.LogInformation($"[AssignRole] Start to assign role {role} to email {email}");
 
-                var user = _userRepo.GetFirstOrNullAsync(t => !t.IsDeleted && t.UserName == email);
+                var user = await _userRepo.GetFirstOrNullAsync(t => !t.IsDeleted && t.UserName == email);
 
                 if (user == null)
                 {
                     return new BaseResponse(StatusCodes.Status400BadRequest, "Username not found");
                 }
 
-                var roleName = _roleRepo.GetFirstAsync(t => t.RoleName == role);
+                var roleName = await _roleRepo.GetFirstAsync(t => t.RoleName == role);
 
                 user.RoleId = roleName.RoleId;
 
-                _userRepo.UpdateAsync(user);
+                await _userRepo.UpdateAsync(user);
 
                 return new BaseResponse("Assign role successfully");
             }
@@ -92,13 +91,13 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse Login(LoginUser login)
+        public async Task<BaseResponse> Login(LoginUser login)
         {
             try
             {
                 _logger.LogInformation($"[Login] Start to login with email: {login.Email}");
 
-                var user = _userRepo.GetFirstOrNullAsync(t => !t.IsDeleted && t.UserName == login.Email);
+                var user = await _userRepo.GetFirstOrNullAsync(t => !t.IsDeleted && t.UserName == login.Email);
 
                 if (user == null)
                 {
@@ -112,7 +111,7 @@ namespace ShopManagement_Backend_Application.Services
                     return new BaseResponse(StatusCodes.Status400BadRequest, "Password not correct");
                 }
 
-                var userRoles = _roleRepo.GetFirstOrNullAsync(t => t.RoleId == user.RoleId);
+                var userRoles = await _roleRepo.GetFirstOrNullAsync(t => t.RoleId == user.RoleId);
 
                 var loginResponse = new LoginResponseModel
                 {
@@ -129,7 +128,7 @@ namespace ShopManagement_Backend_Application.Services
                     UserID = user.Id,
                 };
 
-                _tokenRepo.AddAsync(refreshToken);
+                await _tokenRepo.AddAsync(refreshToken);
 
                 loginResponse.RefreshToken = refreshToken.RefreshToken;
                 
@@ -142,7 +141,7 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse RefreshToken(RefreshTokenRequest request)
+        public async Task<BaseResponse> RefreshToken(RefreshTokenRequest request)
         {
             try
             {
@@ -150,14 +149,14 @@ namespace ShopManagement_Backend_Application.Services
 
                 var principle = _jwtHelper.GetTokenPrinciple(request.AccessToken);
 
-                var user = _userRepo.GetFirstOrNullAsync(c => c.FullName == principle.Identity.Name);
+                var user = await _userRepo.GetFirstOrNullAsync(c => c.FullName == principle.Identity.Name);
 
                 if (user == null)
                 {
                     return new BaseResponse(StatusCodes.Status400BadRequest, "Not found user with that token");
                 }
 
-                var isRefreshTokenValid = _tokenRepo.GetFirstOrNullAsync(c => c.UserID == user.Id);
+                var isRefreshTokenValid = await _tokenRepo.GetFirstOrNullAsync(c => c.UserID == user.Id);
 
                 if (isRefreshTokenValid == null)
                 {
@@ -183,20 +182,20 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse Register(RegisterUser register)
+        public async Task<BaseResponse> Register(RegisterUser register)
         {
             try
             {
                 _logger.LogInformation($"[Register] Start to register user");
 
-                var checkMail = _userRepo.GetFirstOrNullAsync(t => !t.IsDeleted && t.UserName == register.UserName);
+                var checkMail = await _userRepo.GetFirstOrNullAsync(t => !t.IsDeleted && t.UserName == register.UserName);
 
                 if (checkMail != null)
                 {
                     return new BaseResponse(StatusCodes.Status400BadRequest, "Email Exists!");
                 }
 
-                var role = _roleRepo.GetFirstOrNullAsync(t => t.RoleName == register.Role);
+                var role = await _roleRepo.GetFirstOrNullAsync(t => t.RoleName == register.Role);
 
                 if (role == null)
                 {
@@ -215,7 +214,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 user.Password = BCrypt.Net.BCrypt.EnhancedHashPassword(register.Password);
 
-                _userRepo.AddAsync(user);
+                await _userRepo.AddAsync(user);
 
                 return new BaseResponse("Register user successfully");
             }
@@ -226,20 +225,20 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public BaseResponse Logout(int userID)
+        public async Task<BaseResponse> Logout(int userID)
         {
             try
             {
                 _logger.LogInformation($"[Logout] Start to logout");
 
-                var isRefreshTokenValid = _tokenRepo.GetFirstOrNullAsync(c => c.UserID == userID);
+                var isRefreshTokenValid = await _tokenRepo.GetFirstOrNullAsync(c => c.UserID == userID);
 
                 if (isRefreshTokenValid == null)
                 {
                     return new BaseResponse(StatusCodes.Status400BadRequest, "User has already logged out");
                 }
 
-                _tokenRepo.DeleteAsync(isRefreshTokenValid);
+                await _tokenRepo.DeleteAsync(isRefreshTokenValid);
 
                 return new BaseResponse("Logout successfully");
             }
