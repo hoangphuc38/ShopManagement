@@ -12,7 +12,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             ShopManagementDbContext context,
             ILogger<ProductRepository> logger) : base(context, logger)  { }
 
-        public IEnumerable<Product> GetAllProducts()
+        public async Task<IEnumerable<Product>> GetAllProducts()
         {
             try
             {
@@ -21,7 +21,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
 
                 var sqlQuery = "SELECT ProductID, ProductName, Price FROM PRODUCT WHERE IsDeleted = 0";
 
-                var productList = connection.Query<Product>(sqlQuery);
+                var productList = await connection.QueryAsync<Product>(sqlQuery);
 
                 return productList;
             }

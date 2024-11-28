@@ -13,9 +13,9 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             ShopManagementDbContext context,
             ILogger<ShopRepository> logger) : base(context, logger) { }
 
-        public IEnumerable<Shop> GetAllShops()
+        public async Task<IEnumerable<Shop>> GetAllShops()
         {
-            var shopList = Context.Shops.Include(x => x.User).Where(c => !c.IsDeleted).ToList();
+            var shopList = await Context.Shops.Include(x => x.User).Where(c => !c.IsDeleted).ToListAsync();
 
             return shopList;
         }

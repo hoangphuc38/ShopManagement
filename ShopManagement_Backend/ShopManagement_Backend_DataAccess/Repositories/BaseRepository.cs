@@ -21,13 +21,13 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             _logger = logger;
         }
 
-        public TEntity AddAsync(TEntity entity)
+        public async Task<TEntity> AddAsync(TEntity entity)
         {
             try
             {
                 _logger.LogInformation("[AddAsync] Start to connect to db"); 
-                var addedEntity = DbSet.Add(entity).Entity;
-                Context.SaveChanges();
+                var addedEntity = (await DbSet.AddAsync(entity)).Entity;
+                await Context.SaveChangesAsync();
 
                 return addedEntity;
             }
@@ -38,13 +38,13 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
         }
 
-        public TEntity DeleteAsync(TEntity entity)
+        public async Task<TEntity> DeleteAsync(TEntity entity)
         {
             try
             {
                 _logger.LogInformation("[DeleteAsync] Start to connect to db");
                 var removedEntity = DbSet.Remove(entity).Entity;
-                Context.SaveChanges();
+                await Context.SaveChangesAsync();
 
                 return removedEntity;
             }
@@ -55,11 +55,11 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             } 
         }
 
-        public List<TEntity> GetAllAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<List<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate)
         {
             try
             {
-                return DbSet.Where(predicate).ToList();
+                return await DbSet.Where(predicate).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -68,18 +68,18 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
         }
 
-        public TEntity GetFirstAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<TEntity> GetFirstAsync(Expression<Func<TEntity, bool>> predicate)
         {
             try
             {
-                var entity = DbSet.Where(predicate).FirstOrDefault();
+                var entity = await DbSet.Where(predicate).FirstOrDefaultAsync();
 
                 if (entity == null)
                 {
                     throw new KeyNotFoundException();
                 }
 
-                return DbSet.Where(predicate).FirstOrDefault();
+                return await DbSet.Where(predicate).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -88,18 +88,18 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }       
         }
 
-        public TEntity? GetFirstOrNullAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<TEntity?> GetFirstOrNullAsync(Expression<Func<TEntity, bool>> predicate)
         {
             try
             {
-                var entity = DbSet.Where(predicate).FirstOrDefault();
+                var entity = await DbSet.Where(predicate).FirstOrDefaultAsync();
 
                 if (entity == null)
                 {
                     return null;
                 }
 
-                return DbSet.Where(predicate).FirstOrDefault();
+                return await DbSet.Where(predicate).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -108,12 +108,12 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
         }
 
-        public TEntity? UpdateAsync(TEntity entity)
+        public async Task<TEntity?> UpdateAsync(TEntity entity)
         {
             try
             {
                 DbSet.Update(entity);
-                Context.SaveChanges();
+                await Context.SaveChangesAsync();
 
                 return entity;
             }

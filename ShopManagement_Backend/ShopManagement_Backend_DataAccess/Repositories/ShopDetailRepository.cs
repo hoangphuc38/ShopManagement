@@ -12,7 +12,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             ShopManagementDbContext context,
             ILogger<ShopDetailRepository> logger) : base(context, logger) { }
 
-        public IEnumerable<ShopDetail> GetAllAsyncByShopID(object id)
+        public async Task<IEnumerable<ShopDetail>> GetAllAsyncByShopID(object id)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
                 var parameters = new DynamicParameters();
                 parameters.Add("@ShopID", id);
 
-                using (var multi = connection.QueryMultiple(sqlQuery, parameters))
+                using (var multi = await connection.QueryMultipleAsync(sqlQuery, parameters))
                 {
                     var detailList = multi.Read<ShopDetail>().ToList();
                     var productList = multi.Read<Product>().ToList();
