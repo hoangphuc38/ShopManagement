@@ -35,6 +35,7 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpPut("{productID}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> UpdateProduct(int productID, ProductRequest product)
         {
             var result = await _productService.UpdateProduct(productID, product);
@@ -43,6 +44,7 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpDelete("{productID}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteProduct(int productID)
         {
             var result = await _productService.DeleteProduct(productID);
@@ -51,6 +53,7 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> CreateProduct(ProductRequest product)
         {
             var result = await _productService.CreateProduct(product);

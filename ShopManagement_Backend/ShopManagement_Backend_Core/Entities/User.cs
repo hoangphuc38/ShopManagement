@@ -21,6 +21,8 @@ public class User
 
     public int? RoleId { get; set; }
 
+    public virtual ICollection<NotificationRecepient> NotificationRecepients { get; set; } = new List<NotificationRecepient>();
+
     public virtual Role? Role { get; set; }
 
     public virtual ICollection<Shop> Shops { get; set; } = new List<Shop>();

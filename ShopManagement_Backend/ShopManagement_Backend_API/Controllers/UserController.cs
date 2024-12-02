@@ -49,13 +49,5 @@ namespace ShopManagement_Backend_API.Controllers
 
             return StatusCode(result.Status, result);
         }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateUser(UserRequest user)
-        {
-            var result = await _userService.CreateUser(user);
-
-            return StatusCode(result.Status, result);
-        }
     }
 }
