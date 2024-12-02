@@ -7,6 +7,8 @@ using ShopManagement_Backend_Application.Models.User;
 using ShopManagement_Backend_Application.Services.Interfaces;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
+using System.Reflection;
+using System.Resources;
 
 namespace ShopManagement_Backend_Application.Services
 {
@@ -18,6 +20,7 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IShopDetailRepository _shopDetailRepo;
         private readonly ILogger<UserService> _logger;
         private readonly IMemoryCacheService _memoryCacheService;
+        private readonly ResourceManager _resource;
 
         public UserService(
             IMapper mapper,
@@ -33,6 +36,9 @@ namespace ShopManagement_Backend_Application.Services
             _shopDetailRepo = shopDetailRepo;
             _logger = logger;
             _memoryCacheService = memoryCacheService;
+            _resource = new ResourceManager(
+                "ShopManagement_Backend_Application.Resources.Messages.UserMessages",
+                Assembly.GetExecutingAssembly());
         }
 
         public async Task<BaseResponse> GetAllUser()
@@ -57,7 +63,9 @@ namespace ShopManagement_Backend_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError($"[GetAllOfUser] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get all of user");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("GetAllFailed") ?? "");
             }
         }
 
@@ -70,11 +78,13 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var user = await _userRepo.GetFirstAsync(c => c.Id == id && !c.IsDeleted);
+                    var user = await _userRepo.GetFirstOrNullAsync(c => c.Id == id && !c.IsDeleted);
 
                     if (user == null)
                     {
-                        return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
+                        return new BaseResponse(
+                            StatusCodes.Status404NotFound,
+                            _resource.GetString("NotFoundUser") ?? "");
                     }
 
                     var userMapper = _mapper.Map<UserResponse>(user);
@@ -89,30 +99,9 @@ namespace ShopManagement_Backend_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError($"[GetUser] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get user");
-            }
-        }
-
-        public async Task<BaseResponse> CreateUser(UserRequest user)
-        {
-            try
-            {
-                _logger.LogInformation($"[CreateUser] Start to create a user. " +
-                    $"UserName: {user.UserName}, FullName: {user.FullName}, Address: {user.Address}");
-                var newUser = _mapper.Map<User>(user);
-                newUser.IsDeleted = false;
-                newUser.SignUpDate = DateOnly.FromDateTime(DateTime.Now);
-
-                await _userRepo.AddAsync(newUser);
-
-                _memoryCacheService.RemoveCache("UserList");
-
-                return new BaseResponse("Create user successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"[CreateUser] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to create a user");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("GetUserFailed") ?? "");
             }
         }
 
@@ -122,11 +111,13 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogInformation($"[UpdateUser]: Start to update a user with id: {id} " +
                     $"UserName: {user.UserName}, FullName: {user.FullName}, Address: {user.Address}");
-                var userUpdate = await _userRepo.GetFirstAsync(c => c.Id == id && !c.IsDeleted);
+                var userUpdate = await _userRepo.GetFirstOrNullAsync(c => c.Id == id && !c.IsDeleted);
 
                 if (userUpdate == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundUser") ?? "");
                 }
 
                 userUpdate.FullName = user.FullName;
@@ -138,12 +129,14 @@ namespace ShopManagement_Backend_Application.Services
                 _memoryCacheService.RemoveCache("UserList");
                 _memoryCacheService.RemoveCache($"User_{id}");
 
-                return new BaseResponse("Update user successfully");
+                return new BaseResponse(_resource.GetString("UpdateSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[UpdateUser] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to update a user");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("UpdateFailed") ?? "");
             }
         }
 
@@ -152,11 +145,13 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[DeleteUser] Start to delete a user with id: {id}");
-                var user = await _userRepo.GetFirstAsync(c => c.Id == id && !c.IsDeleted);
+                var user = await _userRepo.GetFirstOrNullAsync(c => c.Id == id && !c.IsDeleted);
 
                 if (user == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundUser") ?? "");
                 }
 
                 user.IsDeleted = true;
@@ -179,12 +174,14 @@ namespace ShopManagement_Backend_Application.Services
                 _memoryCacheService.RemoveCache("UserList");
                 _memoryCacheService.RemoveCache($"User_{id}");
 
-                return new BaseResponse("Delete user successfully");
+                return new BaseResponse(_resource.GetString("DeleteSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[DeleteUser] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to delete a user");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("DeleteFailed") ?? "");
             }
         }
     }

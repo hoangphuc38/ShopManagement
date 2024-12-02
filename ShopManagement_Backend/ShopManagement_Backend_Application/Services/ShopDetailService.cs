@@ -7,6 +7,8 @@ using ShopManagement_Backend_Application.Models.ShopDetail;
 using ShopManagement_Backend_Application.Services.Interfaces;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
+using System.Reflection;
+using System.Resources;
 
 namespace ShopManagement_Backend_Application.Services
 {
@@ -18,6 +20,7 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IShopRepository _shopRepo;
         private readonly ILogger<ShopDetailService> _logger;
         private readonly IMemoryCacheService _memoryCacheService;
+        private readonly ResourceManager _resource;
 
         public ShopDetailService(
             IMapper mapper,
@@ -33,6 +36,9 @@ namespace ShopManagement_Backend_Application.Services
             _shopRepo = shopRepo;
             _logger = logger;
             _memoryCacheService = memoryCacheService;
+            _resource = new ResourceManager(
+                "ShopManagement_Backend_Application.Resources.Messages.ShopDetailMessages",
+                Assembly.GetExecutingAssembly());
         }
 
         public async Task<BaseResponse> GetAllOfShop(int id)
@@ -58,7 +64,9 @@ namespace ShopManagement_Backend_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError($"[GetAllOfShop] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get all of shop");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("GetProductsFailed") ?? "");
             }
         }
 
@@ -68,27 +76,33 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogInformation($"[UpdateDetail] Start to update detail in shop. " +
                     $"ShopID: {request.ShopId}, ProductID: {request.ProductId}, Quantity: {request.Quantity}");
-                var product = await _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
+                var product = await _productRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
 
-                var shop = await _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
+                var shop = await _shopRepo.GetFirstOrNullAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
 
                 if (product == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundProduct") ?? "");
                 }
 
                 if (shop == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundShop") ?? "");
                 }
 
-                var detail = await _shopDetailRepo.GetFirstAsync(c => c.ProductId == request.ProductId
+                var detail = await _shopDetailRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId
                                      && c.ShopId == request.ShopId
                                      && !c.IsDeleted);
 
                 if (detail == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Not exist this detail");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("DetailNotExist") ?? "");
                 }
 
                 detail.Quantity = request.Quantity;
@@ -97,12 +111,14 @@ namespace ShopManagement_Backend_Application.Services
 
                 _memoryCacheService.RemoveCache($"Detail_{request.ShopId}");
 
-                return new BaseResponse("Update detail successfully");
+                return new BaseResponse(_resource.GetString("UpdateSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[UpdateDetail] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to update detail");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("UpdateFailed") ?? "");
             }
         }
 
@@ -111,13 +127,15 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[DeleteDetail] Start to delete detail with productid {productID} in shop with id: {shopID}");
-                var detail = await _shopDetailRepo.GetFirstAsync(c => c.ProductId == productID
+                var detail = await _shopDetailRepo.GetFirstOrNullAsync(c => c.ProductId == productID
                                  && c.ShopId == shopID
                                  && !c.IsDeleted);
 
                 if (detail == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Not exist this detail");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("DetailNotExist") ?? "");
                 }
 
                 detail.IsDeleted = true;
@@ -126,12 +144,14 @@ namespace ShopManagement_Backend_Application.Services
 
                 _memoryCacheService.RemoveCache($"Detail_{shopID}");
 
-                return new BaseResponse("Delete detail successfully");
+                return new BaseResponse(_resource.GetString("DeleteSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[DeleteDetail] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to delete detail");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("DeleteFailed") ?? "");
             }
         }
 
@@ -141,18 +161,22 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogInformation($"[CreateDetail] Start to create detail in shop. " +
                     $"ShopID: {request.ShopId}, ProductID: {request.ProductId}, Quantity: {request.Quantity}");
-                var product = await _productRepo.GetFirstAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
+                var product = await _productRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId && !c.IsDeleted);
 
-                var shop = await _shopRepo.GetFirstAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
+                var shop = await _shopRepo.GetFirstOrNullAsync(c => c.ShopId == request.ShopId && !c.IsDeleted);
 
                 if (product == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound, 
+                        _resource.GetString("NotFoundProduct") ?? "");
                 }
 
                 if (shop == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundShop") ?? "");
                 }
 
                 var detail = await _shopDetailRepo.GetFirstOrNullAsync(c => c.ProductId == request.ProductId
@@ -167,7 +191,7 @@ namespace ShopManagement_Backend_Application.Services
 
                     await _shopDetailRepo.AddAsync(shopDetail);
 
-                    return new BaseResponse("Create new detail successfully");
+                    return new BaseResponse(_resource.GetString("CreateSuccess") ?? "");
                 }
 
                 //If exist, add quantity for detail
@@ -177,12 +201,14 @@ namespace ShopManagement_Backend_Application.Services
 
                 _memoryCacheService.RemoveCache($"Detail_{request.ShopId}");
 
-                return new BaseResponse("Add quantity for detail because this detail has existed");
+                return new BaseResponse(_resource.GetString("CreateWhenExist") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[CreateDetail] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to create detail");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("CreateFailed") ?? "");
             }
         }
     }

@@ -9,6 +9,9 @@ using ShopManagement_Backend_Application.Models.User;
 using ShopManagement_Backend_Application.Services.Interfaces;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
+using System.Globalization;
+using System.Reflection;
+using System.Resources;
 
 namespace ShopManagement_Backend_Application.Services
 {
@@ -19,6 +22,7 @@ namespace ShopManagement_Backend_Application.Services
         private readonly ITokenRepository _tokenRepo;
         private readonly IRoleRepository _roleRepo;
         private readonly ILogger<AccountService> _logger;
+        private readonly ResourceManager _resource;
 
         public AccountService(
             IJwtHelper jwtHelper,
@@ -32,6 +36,9 @@ namespace ShopManagement_Backend_Application.Services
             _tokenRepo = tokenRepo;
             _roleRepo = roleRepo;
             _logger = logger;
+            _resource = new ResourceManager(
+                "ShopManagement_Backend_Application.Resources.Messages.AccountMessages",
+                Assembly.GetExecutingAssembly());
         }
 
         public async Task<BaseResponse> AddRole(string role)
@@ -44,7 +51,9 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (ifRoleExist != null)
                 {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "Role has existed");
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest, 
+                        _resource.GetString("RoleExist") ?? "");
                 }
 
                 Role newRole = new Role
@@ -54,12 +63,14 @@ namespace ShopManagement_Backend_Application.Services
 
                 await _roleRepo.AddAsync(newRole);
 
-                return new BaseResponse("Add role successfully");
+                return new BaseResponse(_resource.GetString("RoleSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[AddRole] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to add role");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError, 
+                    _resource.GetString("AddRoleFailed") ?? "");
             }
         }
 
@@ -73,7 +84,9 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (user == null)
                 {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "Username not found");
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest, 
+                        _resource.GetString("NotFoundUser") ?? "");
                 }
 
                 var roleName = await _roleRepo.GetFirstAsync(t => t.RoleName == role);
@@ -82,12 +95,14 @@ namespace ShopManagement_Backend_Application.Services
 
                 await _userRepo.UpdateAsync(user);
 
-                return new BaseResponse("Assign role successfully");
+                return new BaseResponse(_resource.GetString("AssignRoleSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[Assign] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to assign role");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError, 
+                    _resource.GetString("AssignRoleFailed") ?? "");
             }
         }
 
@@ -101,14 +116,18 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (user == null)
                 {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "User not found");
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("NotFoundUser") ?? "");
                 }
 
                 var passwordValid = BCrypt.Net.BCrypt.EnhancedVerify(login.Password, user.Password);
 
                 if (!passwordValid)
                 {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "Password not correct");
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest, 
+                        _resource.GetString("InvalidPassword") ?? "");
                 }
 
                 var userRoles = await _roleRepo.GetFirstOrNullAsync(t => t.RoleId == user.RoleId);
@@ -137,7 +156,9 @@ namespace ShopManagement_Backend_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError($"[Login] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to login user");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("LoginFailed") ?? "");
             }
         }
 
@@ -147,30 +168,36 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogInformation($"[RefreshToken] Start to refresh token");
 
-                var principle = _jwtHelper.GetTokenPrinciple(request.AccessToken);
+                var isRefreshTokenValid = await _tokenRepo.GetFirstOrNullAsync(c => c.RefreshToken == request.RefreshToken);
 
-                var user = await _userRepo.GetFirstOrNullAsync(c => c.FullName == principle.Identity.Name);
+                if (isRefreshTokenValid == null || isRefreshTokenValid.ExpiredDate <= DateTime.Now)
+                {
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("NotFoundRefreshToken") ?? "");
+                }
+
+                var user = await _userRepo.GetFirstOrNullAsync(c => c.Id == isRefreshTokenValid.UserID);
 
                 if (user == null)
                 {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "Not found user with that token");
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("NotFoundUserWithToken") ?? "");
                 }
 
-                var isRefreshTokenValid = await _tokenRepo.GetFirstOrNullAsync(c => c.UserID == user.Id);
+                var role = await _roleRepo.GetFirstOrNullAsync(c => c.RoleId == user.RoleId);
 
-                if (isRefreshTokenValid == null)
+                if (role == null)
                 {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "Not found refresh token, please login");
-                }
-
-                if (isRefreshTokenValid.ExpiredDate <= DateTime.Now)
-                {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "RefreshToken is not valid, please login again");
+                    return new BaseResponse(
+                        StatusCodes.Status500InternalServerError,
+                        _resource.GetString("NotFoundRole") ?? "");
                 }
 
                 var response = new RefreshTokenResponse
                 {
-                    NewAccessToken = _jwtHelper.GenerateToken(user, request.RoleName)
+                    NewAccessToken = _jwtHelper.GenerateToken(user, role.RoleName)
                 };
 
                 return new BaseResponse(response);
@@ -178,7 +205,9 @@ namespace ShopManagement_Backend_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError($"[RefreshToken] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to refresh token");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("RefreshTokenFailed") ?? "");
             }
         }
 
@@ -192,14 +221,18 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (checkMail != null)
                 {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "Email Exists!");
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("MailExist") ?? "");
                 }
 
                 var role = await _roleRepo.GetFirstOrNullAsync(t => t.RoleName == register.Role);
 
                 if (role == null)
                 {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "Role not found!");
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("RoleNotExist") ?? "");
                 }
 
                 var user = new User
@@ -216,12 +249,14 @@ namespace ShopManagement_Backend_Application.Services
 
                 await _userRepo.AddAsync(user);
 
-                return new BaseResponse("Register user successfully");
+                return new BaseResponse(_resource.GetString("RegisterSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[Register] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to register user");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("RegisterFailed") ?? "");
             }
         }
 
@@ -235,17 +270,21 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (isRefreshTokenValid == null)
                 {
-                    return new BaseResponse(StatusCodes.Status400BadRequest, "User has already logged out");
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("AlreadyLogout") ?? "");
                 }
 
                 await _tokenRepo.DeleteAsync(isRefreshTokenValid);
 
-                return new BaseResponse("Logout successfully");
+                return new BaseResponse(_resource.GetString("LogoutSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[Logout] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to logout");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("LogoutFailed") ?? "");
             }
         }
     }

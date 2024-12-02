@@ -6,6 +6,8 @@ using ShopManagement_Backend_Application.Models.Shop;
 using ShopManagement_Backend_Application.Services.Interfaces;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
+using System.Reflection;
+using System.Resources;
 
 namespace ShopManagement_Backend_Application.Services
 {
@@ -17,6 +19,7 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IShopDetailRepository _shopDetailRepo;
         private readonly ILogger<ShopService> _logger;
         private readonly IMemoryCacheService _memoryCacheService;
+        private readonly ResourceManager _resource;
 
         public ShopService(
             IMapper mapper,
@@ -32,6 +35,9 @@ namespace ShopManagement_Backend_Application.Services
             _shopDetailRepo = shopDetailRepo;
             _logger = logger;
             _memoryCacheService = memoryCacheService;
+            _resource = new ResourceManager(
+                "ShopManagement_Backend_Application.Resources.Messages.ShopMessages",
+                Assembly.GetExecutingAssembly());
         }
 
         public async Task<BaseResponse> GetAll()
@@ -57,7 +63,9 @@ namespace ShopManagement_Backend_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError($"[GetAllShop] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get all");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("GetListFailed") ?? "");
             }
         }
 
@@ -75,18 +83,21 @@ namespace ShopManagement_Backend_Application.Services
 
                     if (shopList == null)
                     {
-                        return new BaseResponse(StatusCodes.Status404NotFound, "Not found user");
+                        return new BaseResponse(
+                            StatusCodes.Status404NotFound,
+                            _resource.GetString("NotFoundShop") ?? "");
                     }
 
                     foreach (var shop in shopList)
                     {
                         var shopMapper = _mapper.Map<ShopResponse>(shop);
-                        var user = await _userRepo.GetFirstAsync(c => c.Id == userID && !c.IsDeleted);
+                        var user = await _userRepo.GetFirstOrNullAsync(c => c.Id == userID && !c.IsDeleted);
 
                         if (user == null)
                         {
                             return new BaseResponse(
-                                StatusCodes.Status404NotFound, "Not found owner of the shop");
+                                StatusCodes.Status404NotFound,
+                                _resource.GetString("NotFoundUser") ?? "");
                         }
 
                         shopMapper.OwnerName = user.FullName;
@@ -104,7 +115,9 @@ namespace ShopManagement_Backend_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError($"[GetShopOfUser] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get shop of user");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("GetShopFailed") ?? "");
             }
         }
 
@@ -114,11 +127,13 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogInformation($"[UpdateShop] Start to update shop with id: {shopID} " +
                     $"ShopName: {request.ShopName}, ShopAddress: {request.ShopAddress}");
-                var shop = await _shopRepo.GetFirstAsync(c => c.ShopId == shopID && !c.IsDeleted);
+                var shop = await _shopRepo.GetFirstOrNullAsync(c => c.ShopId == shopID && !c.IsDeleted);
 
                 if (shop == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundShop") ?? "");
                 }
 
                 shop.ShopName = request.ShopName;
@@ -129,12 +144,14 @@ namespace ShopManagement_Backend_Application.Services
                 _memoryCacheService.RemoveCache($"Shop_{shop.UserId}");
                 _memoryCacheService.RemoveCache("ShopList");
 
-                return new BaseResponse("Update shop successfully");
+                return new BaseResponse(_resource.GetString("UpdateSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[UpdateShop] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to update shop");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("UpdateFailed") ?? "");
             }
         }
 
@@ -144,11 +161,13 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogInformation($"[CreateShop] Start to create shop of user with id: {userID} " +
                     $"ShopName: {request.ShopName}, ShopAddress: {request.ShopAddress}");
-                var user = await _userRepo.GetFirstAsync(c => c.Id == userID && !c.IsDeleted);
+                var user = await _userRepo.GetFirstOrNullAsync(c => c.Id == userID && !c.IsDeleted);
 
                 if (user == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "User not found");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundUser") ?? "");
                 }
 
                 var shop = _mapper.Map<Shop>(request);
@@ -161,12 +180,14 @@ namespace ShopManagement_Backend_Application.Services
                 _memoryCacheService.RemoveCache($"Shop_{userID}");
                 _memoryCacheService.RemoveCache("ShopList");
 
-                return new BaseResponse("Create new shop successfully");
+                return new BaseResponse(_resource.GetString("CreateSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[CreateShop] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to create shop");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("CreateFailed") ?? "");
             }
         }
 
@@ -175,11 +196,13 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[DeleteShop] Start to delete shop with id: {shopID}");
-                var shop = await _shopRepo.GetFirstAsync(c => c.ShopId == shopID && !c.IsDeleted);
+                var shop = await _shopRepo.GetFirstOrNullAsync(c => c.ShopId == shopID && !c.IsDeleted);
 
                 if (shop == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Shop not found");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundShop") ?? "");
                 }
 
                 shop.IsDeleted = true;
@@ -195,12 +218,14 @@ namespace ShopManagement_Backend_Application.Services
                 _memoryCacheService.RemoveCache($"Shop_{shop.UserId}");
                 _memoryCacheService.RemoveCache("ShopList");
 
-                return new BaseResponse("Delete shop successfully");
+                return new BaseResponse(_resource.GetString("DeleteSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[DeleteShop] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to delete shop");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("DeleteFailed") ?? "");
             }
         }
     }

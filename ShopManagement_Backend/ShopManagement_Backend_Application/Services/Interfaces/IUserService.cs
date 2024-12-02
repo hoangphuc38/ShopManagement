@@ -9,8 +9,6 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 
         Task<BaseResponse> GetUser(int id);
 
-        Task<BaseResponse> CreateUser(UserRequest user);
-
         Task<BaseResponse> UpdateUser(int id, UserRequest user);
 
         Task<BaseResponse> DeleteUser(int id);

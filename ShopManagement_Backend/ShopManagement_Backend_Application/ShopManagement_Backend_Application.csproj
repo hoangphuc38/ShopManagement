@@ -17,4 +17,64 @@
     <ProjectReference Include="..\ShopManagement_Backend_DataAccess\ShopManagement_Backend_DataAccess.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Resources\Messages\AccountMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AccountMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Messages\NotificationMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NotificationMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Messages\ProductMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ProductMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Messages\ShopDetailMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ShopDetailMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Messages\ShopMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ShopMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Messages\UserMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>UserMessages.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Messages\AccountMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AccountMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Messages\NotificationMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>NotificationMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Messages\ProductMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ProductMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Messages\ShopDetailMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ShopDetailMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Messages\ShopMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ShopMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Messages\UserMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>UserMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
