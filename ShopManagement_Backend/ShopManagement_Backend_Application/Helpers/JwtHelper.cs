@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ShopManagement_Backend_Core.Entities;
 using System.IdentityModel.Tokens.Jwt;
@@ -66,10 +68,11 @@ namespace ShopManagement_Backend_Application.Helpers
 
             var validation = new TokenValidationParameters
             {
+                ValidateIssuerSigningKey = true,
                 IssuerSigningKey = securityKey,
                 ValidateIssuer = false,
                 ValidateAudience = false,
-                ValidateIssuerSigningKey = true,
+                ValidateLifetime = false,
             };
 
             return new JwtSecurityTokenHandler().ValidateToken(token, validation, out _);

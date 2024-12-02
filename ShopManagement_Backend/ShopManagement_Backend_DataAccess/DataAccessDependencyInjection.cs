@@ -20,6 +20,8 @@ namespace ShopManagement_Backend_DataAccess
 
         private static void AddRepositories(this IServiceCollection services)
         {
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<INotificationRecepientRepository, NotificationRecepientRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IShopRepository, ShopRepository>();
             services.AddScoped<IShopDetailRepository, ShopDetailRepository>();

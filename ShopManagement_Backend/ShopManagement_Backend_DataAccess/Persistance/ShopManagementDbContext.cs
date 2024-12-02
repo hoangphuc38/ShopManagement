@@ -15,6 +15,10 @@ namespace ShopManagement_Backend_DataAccess.Persistance
         {
         }
 
+        public virtual DbSet<Notification> Notifications { get; set; }
+
+        public virtual DbSet<NotificationRecepient> NotificationRecepients { get; set; }
+
         public virtual DbSet<Product> Products { get; set; }
 
         public virtual DbSet<Role> Roles { get; set; }
@@ -32,6 +36,40 @@ namespace ShopManagement_Backend_DataAccess.Persistance
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E32852DC955");
+
+                entity.ToTable("Notification");
+
+                entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
+                entity.Property(e => e.Content).HasMaxLength(500);
+                entity.Property(e => e.SenderInfo).HasMaxLength(255);
+                entity.Property(e => e.SentDate).HasColumnType("datetime");
+                entity.Property(e => e.Title).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<NotificationRecepient>(entity =>
+            {
+                entity.HasKey(e => e.NotificationRecepientId).HasName("PK__Notifica__BE0A1EF5EDFB4629");
+
+                entity.ToTable("NotificationRecepient");
+
+                entity.Property(e => e.NotificationRecepientId).HasColumnName("NotificationRecepientID");
+                entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
+                entity.Property(e => e.UserId).HasColumnName("UserID");
+
+                entity.HasOne(d => d.Notification).WithMany(p => p.NotificationRecepients)
+                    .HasForeignKey(d => d.NotificationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_NotificationID");
+
+                entity.HasOne(d => d.User).WithMany(p => p.NotificationRecepients)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UserNoti");
+            });
+
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.ProductId).HasName("PK__Product__B40CC6ED860CB425");
@@ -90,12 +128,12 @@ namespace ShopManagement_Backend_DataAccess.Persistance
 
             modelBuilder.Entity<Token>(entity =>
             {
-                entity.HasKey(e => e.TokenId).HasName("PK__Token__658FEE8A3D41F60B");
+                entity.HasKey(e => e.TokenId).HasName("PK__Token__658FEE8AE75FB5B3");
 
                 entity.ToTable("Token");
 
                 entity.Property(e => e.TokenId).HasColumnName("TokenID");
-                entity.Property(e => e.ExpiredDate);
+                entity.Property(e => e.ExpiredDate).HasColumnType("datetime");
                 entity.Property(e => e.RefreshToken).HasMaxLength(100);
                 entity.Property(e => e.UserID).HasColumnName("UserID");
             });
