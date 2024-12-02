@@ -1,11 +1,15 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using ShopManagement_Backend_Application.Hubs;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Product;
 using ShopManagement_Backend_Application.Services.Interfaces;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
+using System.Reflection;
+using System.Resources;
 
 namespace ShopManagement_Backend_Application.Services
 {
@@ -14,21 +18,37 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IMapper _mapper;
         private readonly IProductRepository _productRepo;
         private readonly IShopDetailRepository _shopDetailRepo;
+        private readonly INotificationRepository _notiRepo;
+        private readonly INotificationRecepientRepository _notiRecepRepo;
+        private readonly IUserRepository _userRepo;
         private readonly ILogger<ProductService> _logger;
         private readonly IMemoryCacheService _memoryCacheService;
+        private readonly IHubContext<StockHub> _stockHub;
+        private readonly ResourceManager _resource;
 
         public ProductService(
             IMapper mapper,
             IProductRepository productRepo,
             IShopDetailRepository shopDetailRepo,
+            INotificationRepository notiRepo,
+            INotificationRecepientRepository notiRecepRepo,
+            IUserRepository userRepo,
             ILogger<ProductService> logger,
-            IMemoryCacheService memoryCacheService)
+            IMemoryCacheService memoryCacheService,
+            IHubContext<StockHub> stockHub)
         {
             _mapper = mapper;
             _productRepo = productRepo;
             _shopDetailRepo = shopDetailRepo;
+            _notiRepo = notiRepo;
+            _notiRecepRepo = notiRecepRepo;
+            _userRepo = userRepo;
             _logger = logger;
             _memoryCacheService = memoryCacheService;
+            _stockHub = stockHub;
+            _resource = new ResourceManager(
+                "ShopManagement_Backend_Application.Resources.Messages.ProductMessages",
+                Assembly.GetExecutingAssembly());
         }
 
         public async Task<BaseResponse> GetAll()
@@ -47,7 +67,9 @@ namespace ShopManagement_Backend_Application.Services
 
                     if (productMapperList == null)
                     {
-                        return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get all");
+                        return new BaseResponse(
+                            StatusCodes.Status500InternalServerError,
+                            _resource.GetString("GetListFailed") ?? "");
                     }
 
                     response = new BaseResponse(productMapperList);
@@ -60,7 +82,9 @@ namespace ShopManagement_Backend_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError($"[GetAllProduct] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get all");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("GetListFailed") ?? "");
             }
             
         }
@@ -75,11 +99,13 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var product = await _productRepo.GetFirstAsync(t => t.ProductId == id && !t.IsDeleted);
+                    var product = await _productRepo.GetFirstOrNullAsync(t => t.ProductId == id && !t.IsDeleted);
 
                     if (product == null)
                     {
-                        return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                        return new BaseResponse(
+                            StatusCodes.Status404NotFound,
+                            _resource.GetString("NotFoundProduct") ?? "");
                     }
 
                     var productMapper = _mapper.Map<ProductResponse>(product);
@@ -94,7 +120,9 @@ namespace ShopManagement_Backend_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError($"[GetDetailProduct] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get detail");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("GetDetailFailed") ?? "");
             }
         }
 
@@ -109,7 +137,9 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (product == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundProduct") ?? "");
                 }
 
                 product.ProductName = request.ProductName;
@@ -120,12 +150,14 @@ namespace ShopManagement_Backend_Application.Services
                 _memoryCacheService.RemoveCache($"Product_{id}");
                 _memoryCacheService.RemoveCache("ProductList");
 
-                return new BaseResponse("Update product successfully");
+                return new BaseResponse(_resource.GetString("UpdateSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[UpdateProduct] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to update");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("UpdateFailed") ?? "");
             }
             
         }
@@ -139,12 +171,13 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (product == null)
                 {
-                    return new BaseResponse(StatusCodes.Status404NotFound, "Product not found");
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundProduct") ?? "");
                 }
 
                 product.IsDeleted = true;
                 await _productRepo.UpdateAsync(product);
-
 
                 var detailList = await _shopDetailRepo.GetAllAsync(c => c.ProductId == id && !c.IsDeleted);
                 foreach (var detail in detailList)
@@ -156,12 +189,14 @@ namespace ShopManagement_Backend_Application.Services
                 _memoryCacheService.RemoveCache($"Product_{id}");
                 _memoryCacheService.RemoveCache("ProductList");
 
-                return new BaseResponse("Delete product successfully");
+                return new BaseResponse(_resource.GetString("DeleteSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[DeleteProduct] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to delete");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("DeleteFailed") ?? "");
             }
             
         }
@@ -177,14 +212,42 @@ namespace ShopManagement_Backend_Application.Services
 
                 await _productRepo.AddAsync(product);
 
+                var notification = new Notification
+                {
+                    Title = "Sản phẩm mới",
+                    Content = $"Đã thêm sản phẩm mới: {request.ProductName} với giá {request.Price}",
+                    SentDate = DateTime.Now,
+                    SenderInfo = "Admin"
+                };
+
+                await _notiRepo.AddAsync(notification);
+
+                var userList = await _userRepo.GetAllAsync(t => !t.IsDeleted);
+
+                foreach (var user in userList)
+                {
+                    var notificationRecep = new NotificationRecepient
+                    {
+                        UserId = user.Id,
+                        NotificationId = notification.NotificationId,
+                    };
+
+                    await _notiRecepRepo.AddAsync(notificationRecep);   
+                }
+
+                await _stockHub.Clients.All.SendAsync(
+                    "NewProductNoti", request.ProductName, request.Price);
+
                 _memoryCacheService.RemoveCache("ProductList");
 
-                return new BaseResponse("Create product successfully");
+                return new BaseResponse(_resource.GetString("CreateSuccess") ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError($"[CreateProduct] Error: {ex.Message}");
-                return new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to create");
+                return new BaseResponse(
+                    StatusCodes.Status500InternalServerError,
+                    _resource.GetString("CreateFailed") ?? "");
             }          
         }
     }

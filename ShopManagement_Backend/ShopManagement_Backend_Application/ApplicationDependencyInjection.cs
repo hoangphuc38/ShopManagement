@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using ShopManagement_Backend_Application.Helpers;
 using ShopManagement_Backend_Application.MappingProfiles;
 using ShopManagement_Backend_Application.Services;
 using ShopManagement_Backend_Application.Services.Interfaces;
-using ShopManagement_Backend_DataAccess.Identity;
 
 namespace ShopManagement_Backend_Application
 {
@@ -15,6 +13,8 @@ namespace ShopManagement_Backend_Application
             services.AddServices();
 
             services.AddAutoMapper();
+
+            services.AddSignalR();
 
             return services;
         }

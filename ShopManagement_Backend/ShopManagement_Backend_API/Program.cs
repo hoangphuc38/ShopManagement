@@ -1,6 +1,7 @@
 using ShopManagement_Backend_API;
 using ShopManagement_Backend_API.Middlewares;
 using ShopManagement_Backend_Application;
+using ShopManagement_Backend_Application.Hubs;
 using ShopManagement_Backend_DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSwagger();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin() // Add your production origins as needed
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
 
 builder.Services.AddDataAccess(builder.Configuration)
                 .AddApplication();
@@ -40,6 +51,10 @@ app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
+
+app.UseCors("AllowAll");
+
+app.MapHub<StockHub>("/hubs/stock");
 
 app.Run();
 
