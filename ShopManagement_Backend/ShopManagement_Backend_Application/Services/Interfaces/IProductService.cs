@@ -5,7 +5,7 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 {
     public interface IProductService
     {
-        Task<BaseResponse> GetAll();
+        Task<BaseResponse> GetProductsWithPagination(ProductPaginationRequest request);
 
         Task<BaseResponse> GetDetailProduct(int id);
 

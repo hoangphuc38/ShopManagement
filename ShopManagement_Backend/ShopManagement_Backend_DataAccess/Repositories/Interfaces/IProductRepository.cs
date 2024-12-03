@@ -4,6 +4,8 @@ namespace ShopManagement_Backend_DataAccess.Repositories.Interfaces
 {
     public interface IProductRepository : IBaseRepository<Product>
     {
-        Task<IEnumerable<Product>> GetAllProducts();
+        Task<Product> GetProductById(object id);
+
+        Task<IEnumerable<Product>> GetProductsWithPagination(string columnName, string typeSort, string filter);
     }
 }

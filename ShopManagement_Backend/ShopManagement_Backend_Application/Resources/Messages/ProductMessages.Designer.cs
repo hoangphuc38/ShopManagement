@@ -115,11 +115,29 @@ namespace ShopManagement_Backend_Application.Resources.Messages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid page index, please try again.
+        /// </summary>
+        internal static string InvalidPage {
+            get {
+                return ResourceManager.GetString("InvalidPage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not found product.
         /// </summary>
         internal static string NotFoundProduct {
             get {
                 return ResourceManager.GetString("NotFoundProduct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error when searching product.
+        /// </summary>
+        internal static string SearchFailed {
+            get {
+                return ResourceManager.GetString("SearchFailed", resourceCulture);
             }
         }
         

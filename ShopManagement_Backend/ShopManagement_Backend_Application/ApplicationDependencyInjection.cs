@@ -3,6 +3,7 @@ using ShopManagement_Backend_Application.Helpers;
 using ShopManagement_Backend_Application.MappingProfiles;
 using ShopManagement_Backend_Application.Services;
 using ShopManagement_Backend_Application.Services.Interfaces;
+using ShopManagement_Backend_Core.Entities;
 
 namespace ShopManagement_Backend_Application
 {
@@ -28,6 +29,8 @@ namespace ShopManagement_Backend_Application
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IMemoryCacheService, MemoryCacheService>();
             services.AddScoped<IJwtHelper, JwtHelper>();
+
+            services.AddScoped<PaginationHelper<Product>>();
         }
 
         private static void AddAutoMapper(this IServiceCollection services)

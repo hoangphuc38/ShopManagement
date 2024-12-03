@@ -144,4 +144,10 @@
   <data name="CreateFailed" xml:space="preserve">
     <value>Failed to create a new product</value>
   </data>
+  <data name="SearchFailed" xml:space="preserve">
+    <value>Error when searching product</value>
+  </data>
+  <data name="InvalidPage" xml:space="preserve">
+    <value>Invalid page index, please try again</value>
+  </data>
 </root>

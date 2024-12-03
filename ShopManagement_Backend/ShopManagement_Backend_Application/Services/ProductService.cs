@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using ShopManagement_Backend_Application.Helpers;
 using ShopManagement_Backend_Application.Hubs;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Product;
@@ -25,6 +27,7 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IMemoryCacheService _memoryCacheService;
         private readonly IHubContext<StockHub> _stockHub;
         private readonly ResourceManager _resource;
+        private readonly PaginationHelper<Product> _pagination;
 
         public ProductService(
             IMapper mapper,
@@ -35,7 +38,8 @@ namespace ShopManagement_Backend_Application.Services
             IUserRepository userRepo,
             ILogger<ProductService> logger,
             IMemoryCacheService memoryCacheService,
-            IHubContext<StockHub> stockHub)
+            IHubContext<StockHub> stockHub,
+            PaginationHelper<Product> pagination)
         {
             _mapper = mapper;
             _productRepo = productRepo;
@@ -49,35 +53,61 @@ namespace ShopManagement_Backend_Application.Services
             _resource = new ResourceManager(
                 "ShopManagement_Backend_Application.Resources.Messages.ProductMessages",
                 Assembly.GetExecutingAssembly());
+            _pagination = pagination;
         }
 
-        public async Task<BaseResponse> GetAll()
+        public async Task<BaseResponse> GetProductsWithPagination(ProductPaginationRequest request)
         {
             try
             {
                 _logger.LogInformation($"[GetAllProduct] Start to get all products.");
-
-                var response = _memoryCacheService.GetCacheData("ProductList");
-
-                if (response == null)
+                // validate reuquest
+                if (request.PageIndex < 1 || request.PageSize < 1)
                 {
-                    var productList = await _productRepo.GetAllProducts();
-
-                    var productMapperList = _mapper.Map<List<ProductResponse>>(productList);
-
-                    if (productMapperList == null)
-                    {
-                        return new BaseResponse(
-                            StatusCodes.Status500InternalServerError,
-                            _resource.GetString("GetListFailed") ?? "");
-                    }
-
-                    response = new BaseResponse(productMapperList);
-
-                    _memoryCacheService.SetCache("ProductList", response);
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("InvalidPage") ?? "");
                 }
 
-                return response;
+                // logic
+                string filter = string.Empty;
+
+                if (!string.IsNullOrEmpty(request.SearchText))
+                {
+                    filter = $" AND ProductName LIKE '%{request.SearchText}%' ";
+                }
+
+                var productList = await _productRepo.GetProductsWithPagination(request.Column, request.Sort, filter);
+                
+                if (productList.Count() == 0)
+                {
+                    return new BaseResponse(new ProductPaginationResponse(request.PageIndex, request.PageSize, productList));
+                }
+
+                int totalRecord = productList.Count();
+                int totalPages = productList.Count() / request.PageSize + 1;
+
+                var paginationList = _pagination.Pagination(productList, request.PageIndex, request.PageSize);
+
+                var productMapperList = _mapper.Map<List<ProductResponse>>(paginationList);
+
+                if (productMapperList == null)
+                {
+                    return new BaseResponse(
+                        StatusCodes.Status500InternalServerError,
+                        _resource.GetString("GetListFailed") ?? "");
+                }
+
+                var response = new ProductPaginationResponse
+                {
+                    PageNumber = request.PageIndex,
+                    PageSize = request.PageSize,
+                    TotalOfNumberRecord = totalRecord,
+                    TotalOfPages = totalPages,
+                    Results = productMapperList
+                };
+
+                return new BaseResponse(response);
             }
             catch (Exception ex)
             {
@@ -99,7 +129,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 if (response == null)
                 {
-                    var product = await _productRepo.GetFirstOrNullAsync(t => t.ProductId == id && !t.IsDeleted);
+                    var product = await _productRepo.GetProductById(id);
 
                     if (product == null)
                     {
@@ -148,7 +178,6 @@ namespace ShopManagement_Backend_Application.Services
                 await _productRepo.UpdateAsync(product);
 
                 _memoryCacheService.RemoveCache($"Product_{id}");
-                _memoryCacheService.RemoveCache("ProductList");
 
                 return new BaseResponse(_resource.GetString("UpdateSuccess") ?? "");
             }
@@ -187,7 +216,6 @@ namespace ShopManagement_Backend_Application.Services
                 }
 
                 _memoryCacheService.RemoveCache($"Product_{id}");
-                _memoryCacheService.RemoveCache("ProductList");
 
                 return new BaseResponse(_resource.GetString("DeleteSuccess") ?? "");
             }
@@ -198,7 +226,6 @@ namespace ShopManagement_Backend_Application.Services
                     StatusCodes.Status500InternalServerError,
                     _resource.GetString("DeleteFailed") ?? "");
             }
-            
         }
 
         public async Task<BaseResponse> CreateProduct(ProductRequest request)
@@ -237,8 +264,6 @@ namespace ShopManagement_Backend_Application.Services
 
                 await _stockHub.Clients.All.SendAsync(
                     "NewProductNoti", request.ProductName, request.Price);
-
-                _memoryCacheService.RemoveCache("ProductList");
 
                 return new BaseResponse(_resource.GetString("CreateSuccess") ?? "");
             }

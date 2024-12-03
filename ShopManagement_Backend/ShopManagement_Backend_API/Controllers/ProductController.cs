@@ -19,9 +19,9 @@ namespace ShopManagement_Backend_API.Controllers
         }        
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetProductsWithPagination([FromQuery] ProductPaginationRequest request)
         {
-            var result = await _productService.GetAll();
+            var result = await _productService.GetProductsWithPagination(request);
             
             return StatusCode(result.Status, result);
         }
@@ -53,7 +53,7 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
         public async Task<IActionResult> CreateProduct(ProductRequest product)
         {
             var result = await _productService.CreateProduct(product);
