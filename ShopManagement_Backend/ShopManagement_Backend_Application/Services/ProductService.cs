@@ -71,25 +71,25 @@ namespace ShopManagement_Backend_Application.Services
 
                 // logic
                 string filter = string.Empty;
+                int totalRecords;
 
                 if (!string.IsNullOrEmpty(request.SearchText))
                 {
                     filter = $" AND ProductName LIKE '%{request.SearchText}%' ";
                 }
 
-                var productList = await _productRepo.GetProductsWithPagination(request.Column, request.Sort, filter);
+                var productList = _productRepo.GetProductsWithPagination(
+                    request.PageIndex, request.PageSize,
+                    request.Column, request.Sort, filter, out totalRecords);
                 
-                if (productList.Count() == 0)
+                if (totalRecords == 0)
                 {
                     return new BaseResponse(new ProductPaginationResponse(request.PageIndex, request.PageSize, productList));
                 }
 
-                int totalRecord = productList.Count();
-                int totalPages = productList.Count() / request.PageSize + 1;
+                int totalPages = totalRecords / request.PageSize + 1;
 
-                var paginationList = _pagination.Pagination(productList, request.PageIndex, request.PageSize);
-
-                var productMapperList = _mapper.Map<List<ProductResponse>>(paginationList);
+                var productMapperList = _mapper.Map<List<ProductResponse>>(productList);
 
                 if (productMapperList == null)
                 {
@@ -102,7 +102,7 @@ namespace ShopManagement_Backend_Application.Services
                 {
                     PageNumber = request.PageIndex,
                     PageSize = request.PageSize,
-                    TotalOfNumberRecord = totalRecord,
+                    TotalOfNumberRecord = totalRecords,
                     TotalOfPages = totalPages,
                     Results = productMapperList
                 };

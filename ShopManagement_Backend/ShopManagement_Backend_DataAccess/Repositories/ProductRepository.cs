@@ -6,6 +6,7 @@ using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Persistance;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 using System.Net.WebSockets;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ShopManagement_Backend_DataAccess.Repositories
 {
@@ -41,8 +42,9 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             }
         }
 
-        public async Task<IEnumerable<Product>> GetProductsWithPagination(
-            string columnName, string typeSort, string filter)
+        public IEnumerable<Product> GetProductsWithPagination(
+            int page, int pageSize,
+            string columnName, string typeSort, string filter, out int total)
         {
             try
             {
@@ -50,18 +52,29 @@ namespace ShopManagement_Backend_DataAccess.Repositories
 
                 using var connection = Context.GetDbConnection();
 
-                string sqlQuery = "";
                 string sortOrder = typeSort == SortType.Ascending ? SortType.AscendingSort : SortType.DescendingSort;
 
-                sqlQuery =
+                int skipRows = (page - 1) * pageSize;
+
+                string sqlQuery =
                     @"SELECT ProductID, ProductName, Price 
                       FROM PRODUCT
                       WHERE IsDeleted = 0 " + filter +
-                      " ORDER BY " + columnName + " " + sortOrder;
+                      " ORDER BY " + columnName + " " + sortOrder +
+                      " OFFSET " + skipRows + " ROWS " +
+                      " FETCH NEXT " + pageSize +" ROWS ONLY;" +
+                      " " +
+                      "SELECT COUNT(ProductID) " +
+                      "FROM Product " +
+                      "WHERE IsDeleted = 0";
 
-                var productList = await connection.QueryAsync<Product>(sqlQuery);
+                using (var multi = connection.QueryMultiple(sqlQuery))
+                {
+                    total = multi.ReadSingle();
+                    var productList = multi.Read<Product>().ToList();
 
-                return productList;
+                    return productList;
+                }
             }
             catch (Exception ex)
             {
