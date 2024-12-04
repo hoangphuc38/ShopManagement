@@ -13,7 +13,7 @@ public class Shop
 
     public string? ShopAddress { get; set; }
 
-    public DateOnly? CreatedDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
 
     public bool IsDeleted { get; set; }
 

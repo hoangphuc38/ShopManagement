@@ -8,7 +8,7 @@
 
         public string? ShopAddress { get; set; }
 
-        public DateOnly? CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
         public string OwnerName { get; set; } = null!;
     }

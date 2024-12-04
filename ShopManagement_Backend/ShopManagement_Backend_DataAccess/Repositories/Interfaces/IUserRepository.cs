@@ -2,5 +2,8 @@
 
 namespace ShopManagement_Backend_DataAccess.Repositories.Interfaces
 {
-    public interface IUserRepository : IBaseRepository<User> { }
+    public interface IUserRepository : IBaseRepository<User>
+    {
+        Task<User> GetUserByShopID(int shopID);
+    }
 }

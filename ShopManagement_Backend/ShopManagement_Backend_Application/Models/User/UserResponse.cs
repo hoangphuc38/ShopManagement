@@ -10,6 +10,6 @@
 
         public string Address { get; set; } = string.Empty;
 
-        public DateOnly? SignUpDate { get; set; }
+        public DateTime? SignUpDate { get; set; }
     }
 }

@@ -5,7 +5,7 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 {
     public interface IShopDetailService
     {
-        Task<BaseResponse> GetAllOfShop(int id);
+        Task<BaseResponse> GetShopDetailWithPagination(int id, ShopDetailPaginationRequest request);
 
         Task<BaseResponse> UpdateDetail(ShopDetailRequest request);
 

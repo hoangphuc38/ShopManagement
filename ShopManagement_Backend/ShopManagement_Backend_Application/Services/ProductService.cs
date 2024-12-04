@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_Application.Helpers;
 using ShopManagement_Backend_Application.Hubs;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Product;
 using ShopManagement_Backend_Application.Services.Interfaces;
+using ShopManagement_Backend_Core.Constants;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 using System.Reflection;
@@ -61,7 +61,7 @@ namespace ShopManagement_Backend_Application.Services
             try
             {
                 _logger.LogInformation($"[GetAllProduct] Start to get all products.");
-                // validate reuquest
+                // validate request
                 if (request.PageIndex < 1 || request.PageSize < 1)
                 {
                     return new BaseResponse(
@@ -78,27 +78,23 @@ namespace ShopManagement_Backend_Application.Services
                     filter = $" AND ProductName LIKE '%{request.SearchText}%' ";
                 }
 
+                string sortOrder = request.Sort == SortType.Ascending ? SortType.AscendingSort : SortType.DescendingSort;
+
+                string sort = $" ORDER BY {request.Column} {sortOrder} ";
+
                 var productList = _productRepo.GetProductsWithPagination(
-                    request.PageIndex, request.PageSize,
-                    request.Column, request.Sort, filter, out totalRecords);
+                    request.PageIndex, request.PageSize, sort, filter, out totalRecords);
                 
                 if (totalRecords == 0)
                 {
-                    return new BaseResponse(new ProductPaginationResponse(request.PageIndex, request.PageSize, productList));
+                    return new BaseResponse(new PaginationResponse(request.PageIndex, request.PageSize, productList));
                 }
 
                 int totalPages = totalRecords / request.PageSize + 1;
 
                 var productMapperList = _mapper.Map<List<ProductResponse>>(productList);
 
-                if (productMapperList == null)
-                {
-                    return new BaseResponse(
-                        StatusCodes.Status500InternalServerError,
-                        _resource.GetString("GetListFailed") ?? "");
-                }
-
-                var response = new ProductPaginationResponse
+                var response = new PaginationResponse
                 {
                     PageNumber = request.PageIndex,
                     PageSize = request.PageSize,

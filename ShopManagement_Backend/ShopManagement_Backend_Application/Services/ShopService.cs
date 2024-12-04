@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Shop;
 using ShopManagement_Backend_Application.Services.Interfaces;
+using ShopManagement_Backend_Core.Constants;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 using System.Reflection;
@@ -40,25 +41,60 @@ namespace ShopManagement_Backend_Application.Services
                 Assembly.GetExecutingAssembly());
         }
 
-        public async Task<BaseResponse> GetAll()
+        public async Task<BaseResponse> GetShopsWithPagination(ShopPaginationRequest request)
         {
             try
             {
                 _logger.LogInformation($"[GetAllShop] Start to get all shops.");
-                var response = _memoryCacheService.GetCacheData("ShopList");
 
-                if (response == null)
+                if (request.PageIndex < 1 || request.PageSize < 1)
                 {
-                    var shopList = await _shopRepo.GetAllShops();
-
-                    var shopListMapper = _mapper.Map<List<ShopResponse>>(shopList);
-
-                    response = new BaseResponse(shopListMapper);
-
-                    _memoryCacheService.SetCache("ShopList", response);
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("InvalidPage") ?? "");
                 }
-                
-                return response;
+
+                string filter = string.Empty;
+                int totalRecords;
+
+                if (!string.IsNullOrEmpty(request.SearchText))
+                {
+                    filter = $" AND ShopName LIKE '%{request.SearchText}%' ";
+                }
+
+                string sortOrder = request.Sort == SortType.Ascending ? SortType.AscendingSort : SortType.DescendingSort;
+
+                string sort = $" ORDER BY {request.Column} {sortOrder} ";
+
+                var shopList = _shopRepo.GetShopsWithPagination(
+                    request.PageIndex, request.PageSize, sort, filter, out totalRecords);
+
+                if (totalRecords == 0)
+                {
+                    return new BaseResponse(new PaginationResponse(request.PageIndex, request.PageSize, shopList));
+                }
+
+                int totalPages = totalRecords / request.PageSize + 1;
+
+                foreach (var shop in shopList)
+                {
+                    var user = await _userRepo.GetUserByShopID(shop.ShopId);
+
+                    shop.User = user;
+                }
+
+                var shopListMapper = _mapper.Map<List<ShopResponse>>(shopList);
+
+                var response = new PaginationResponse
+                {
+                    PageNumber = request.PageIndex,
+                    PageSize = request.PageSize,
+                    TotalOfNumberRecord = totalRecords,
+                    TotalOfPages = totalPages,
+                    Results = shopListMapper
+                };
+
+                return new BaseResponse(response);
             }
             catch (Exception ex)
             {
@@ -69,48 +105,63 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public async Task<BaseResponse> GetShopOfUser(int userID)
+        public async Task<BaseResponse> GetShopOfUser(int userID, ShopPaginationRequest request)
         {
             try
             {
                 _logger.LogInformation($"[GetShopOfUser] Start to get shops of user with id: {userID}.");
-                var response = _memoryCacheService.GetCacheData($"Shop_{userID}");
 
-                if (response == null)
+                if (request.PageIndex < 1 || request.PageSize < 1)
                 {
-                    var shopList = await _shopRepo.GetAllAsync(c => c.UserId == userID && !c.IsDeleted);
-                    var responseShopList = new List<ShopResponse>();
-
-                    if (shopList == null)
-                    {
-                        return new BaseResponse(
-                            StatusCodes.Status404NotFound,
-                            _resource.GetString("NotFoundShop") ?? "");
-                    }
-
-                    foreach (var shop in shopList)
-                    {
-                        var shopMapper = _mapper.Map<ShopResponse>(shop);
-                        var user = await _userRepo.GetFirstOrNullAsync(c => c.Id == userID && !c.IsDeleted);
-
-                        if (user == null)
-                        {
-                            return new BaseResponse(
-                                StatusCodes.Status404NotFound,
-                                _resource.GetString("NotFoundUser") ?? "");
-                        }
-
-                        shopMapper.OwnerName = user.FullName;
-
-                        responseShopList.Add(shopMapper);
-                    }
-
-                    response = new BaseResponse(responseShopList);
-
-                    _memoryCacheService.SetCache($"Shop_{userID}", response);
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("InvalidPage") ?? "");
                 }
+
+                string filter = string.Empty;
+                int totalRecords;
+
+                if (!string.IsNullOrEmpty(request.SearchText))
+                {
+                    filter = $" AND ShopName LIKE '%{request.SearchText}%' ";
+                }
+
+                string sortOrder = request.Sort == SortType.Ascending ? SortType.AscendingSort : SortType.DescendingSort;
+
+                string sort = $" ORDER BY {request.Column} {sortOrder} ";
+
+                var shopList = _shopRepo.GetShopByUserID(
+                    userID,
+                    request.PageIndex, request.PageSize, sort, filter, out totalRecords);
+
+                if (shopList.Count() == 0)
+                {
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundShop") ?? "");
+                }
+
+                int totalPages = totalRecords / request.PageSize + 1;
+
+                foreach (var shop in shopList)
+                {
+                    var user = await _userRepo.GetUserByShopID(shop.ShopId);
+
+                    shop.User = user;
+                }
+
+                var shopMapperList = _mapper.Map<List<ShopResponse>>(shopList);
+
+                var response = new PaginationResponse
+                {
+                    PageNumber = request.PageIndex,
+                    PageSize = request.PageSize,
+                    TotalOfNumberRecord = totalRecords,
+                    TotalOfPages = totalPages,
+                    Results = shopMapperList
+                };
                 
-                return response;
+                return new BaseResponse(response);
             }
             catch (Exception ex)
             {
@@ -142,7 +193,6 @@ namespace ShopManagement_Backend_Application.Services
                 await _shopRepo.UpdateAsync(shop);
 
                 _memoryCacheService.RemoveCache($"Shop_{shop.UserId}");
-                _memoryCacheService.RemoveCache("ShopList");
 
                 return new BaseResponse(_resource.GetString("UpdateSuccess") ?? "");
             }
@@ -172,13 +222,12 @@ namespace ShopManagement_Backend_Application.Services
 
                 var shop = _mapper.Map<Shop>(request);
                 shop.UserId = userID;
-                shop.CreatedDate = DateOnly.FromDateTime(DateTime.Now);
+                shop.CreatedDate = DateTime.Now;
                 shop.IsDeleted = false;
 
                 await _shopRepo.AddAsync(shop);
 
                 _memoryCacheService.RemoveCache($"Shop_{userID}");
-                _memoryCacheService.RemoveCache("ShopList");
 
                 return new BaseResponse(_resource.GetString("CreateSuccess") ?? "");
             }
@@ -216,7 +265,6 @@ namespace ShopManagement_Backend_Application.Services
                 }
 
                 _memoryCacheService.RemoveCache($"Shop_{shop.UserId}");
-                _memoryCacheService.RemoveCache("ShopList");
 
                 return new BaseResponse(_resource.GetString("DeleteSuccess") ?? "");
             }

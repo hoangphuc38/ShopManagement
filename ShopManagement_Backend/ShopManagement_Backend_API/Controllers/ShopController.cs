@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using  ShopManagement_Backend_API.CustomAttributes;
+using ShopManagement_Backend_API.CustomAttributes;
+using ShopManagement_Backend_Application.Models.Product;
 using ShopManagement_Backend_Application.Models.Shop;
 using ShopManagement_Backend_Application.Services.Interfaces;
 
@@ -20,17 +21,18 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetShopsWithPagination([FromQuery] ShopPaginationRequest request)
         {
-            var result = await _shopService.GetAll();
+            var result = await _shopService.GetShopsWithPagination(request);
 
             return StatusCode(result.Status, result);
         }
 
         [HttpGet("{userId}")]
-        public async Task<IActionResult> GetShopOfUser(int userId)
+        
+        public async Task<IActionResult> GetShopOfUser(int userId, [FromQuery] ShopPaginationRequest request)
         {
-            var result = await _shopService.GetShopOfUser(userId);
+            var result = await _shopService.GetShopOfUser(userId, request);
 
             return StatusCode(result.Status, result);
         }

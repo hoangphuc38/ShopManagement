@@ -6,7 +6,7 @@ using ShopManagement_Backend_Application.Services.Interfaces;
 
 namespace ShopManagement_Backend_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/shop-detail")]
     [ApiController]
     [Authorize]
     public class ShopDetailController : ControllerBase
@@ -20,9 +20,9 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpGet("{shopID}")]
-        public async Task<IActionResult> GetAll(int shopID)
+        public async Task<IActionResult> GetShopDetailWithPagination(int shopID, [FromQuery] ShopDetailPaginationRequest request)
         {
-            var result = await _shopDetailService.GetAllOfShop(shopID);
+            var result = await _shopDetailService.GetShopDetailWithPagination(shopID, request);
 
             return StatusCode(result.Status, result);
         }

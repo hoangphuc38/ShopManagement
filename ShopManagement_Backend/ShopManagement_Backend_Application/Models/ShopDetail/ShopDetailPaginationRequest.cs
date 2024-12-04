@@ -1,9 +1,13 @@
 ﻿using ShopManagement_Backend_Core.Constants;
-using System.ComponentModel;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ShopManagement_Backend_Application.Models.Product
+namespace ShopManagement_Backend_Application.Models.ShopDetail
 {
-    public class ProductPaginationRequest
+    public class ShopDetailPaginationRequest
     {
         public int PageIndex { get; set; } = 1;
 

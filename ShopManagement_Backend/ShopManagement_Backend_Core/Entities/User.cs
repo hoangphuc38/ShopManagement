@@ -15,7 +15,7 @@ public class User
 
     public string? Address { get; set; }
 
-    public DateOnly? SignUpDate { get; set; }
+    public DateTime? SignUpDate { get; set; }
 
     public bool IsDeleted { get; set; }
 

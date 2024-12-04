@@ -241,7 +241,7 @@ namespace ShopManagement_Backend_Application.Services
                     UserName = register.UserName,
                     FullName = register.FullName,
                     Address = register.Address,
-                    SignUpDate = DateOnly.FromDateTime(DateTime.Now),
+                    SignUpDate = DateTime.Now,
                     IsDeleted = false,
                 };
 

@@ -12,7 +12,9 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             ShopManagementDbContext context,
             ILogger<ShopDetailRepository> logger) : base(context, logger) { }
 
-        public async Task<IEnumerable<ShopDetail>> GetAllAsyncByShopID(object id)
+        public IEnumerable<ShopDetail> GetShopDetailWithPagination(
+            object id,
+            int page, int pageSize, string sort, string filter, out int total)
         {
             try
             {
@@ -20,38 +22,50 @@ namespace ShopManagement_Backend_DataAccess.Repositories
                 using var connection = Context.GetDbConnection();
 
                 var sqlQuery =
-                    $"SELECT ProductID, Quantity FROM SHOPDETAIL WHERE ShopId = @ShopId AND IsDeleted = 0; " +
-                    $"SELECT ProductID, ProductName, Price FROM PRODUCT " +
-                        $"WHERE ProductID IN" +
-                        $"(SELECT ProductID FROM SHOPDETAIL WHERE ShopID = @ShopID)";
+                    $@"SELECT 
+                        s.ProductID, 
+                        s.Quantity, 
+                        p.ProductName, 
+                        p.Price,
+                        COUNT(s.ProductID) OVER() as TotalRecords
+                      FROM SHOPDETAIL as s
+                      INNER JOIN PRODUCT as p ON s.ProductID = p.ProductID 
+                      WHERE s.ShopID = @ShopID AND s.IsDeleted = 0 {filter}
+                      {sort}
+                      OFFSET @skipRows ROWS 
+                      FETCH NEXT @pageSize ROWS ONLY";
 
                 var parameters = new DynamicParameters();
                 parameters.Add("@ShopID", id);
+                parameters.Add("@skipRows", (page - 1) * pageSize);
+                parameters.Add("@pageSize", pageSize);
 
-                using (var multi = await connection.QueryMultipleAsync(sqlQuery, parameters))
+                var detailList = connection.Query<ShopDetail>(sqlQuery, parameters);
+
+                var productList = connection.Query<Product>(sqlQuery, parameters);
+
+                if (detailList.Count() == 0 || productList.Count() == 0)
                 {
-                    var detailList = multi.Read<ShopDetail>().ToList();
-                    var productList = multi.Read<Product>().ToList();
+                    throw new Exception("Not found detail list by id of product");
+                }
 
-                    if (detailList.Count == 0 || productList.Count == 0)
+                foreach (var item in detailList)
+                {
+                    foreach (var product in productList)
                     {
-                        throw new Exception("Not found detail list by id of product");
-                    }
-
-                    foreach (var item in detailList)
-                    {
-                        foreach (var product in productList)
+                        if (product.ProductId == item.ProductId)
                         {
-                            if (product.ProductId == item.ProductId)
-                            {
-                                item.Product = product;
-                                continue;
-                            }
+                            item.Product = product;
+                            continue;
                         }
                     }
-
-                    return detailList;
                 }
+
+                dynamic result = connection.QueryFirst(sqlQuery, parameters);
+
+                total = result.TotalRecords;
+
+                return detailList;
             }
             catch (Exception ex)
             {

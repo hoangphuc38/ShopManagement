@@ -4,6 +4,8 @@ namespace ShopManagement_Backend_DataAccess.Repositories.Interfaces
 {
     public interface IShopDetailRepository : IBaseRepository<ShopDetail>
     {
-        Task<IEnumerable<ShopDetail>> GetAllAsyncByShopID(object id);
+        IEnumerable<ShopDetail> GetShopDetailWithPagination(
+            object id,
+            int page, int pageSize, string sort, string filter, out int total);
     }
 }

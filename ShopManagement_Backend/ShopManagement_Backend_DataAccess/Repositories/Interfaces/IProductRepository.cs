@@ -7,7 +7,6 @@ namespace ShopManagement_Backend_DataAccess.Repositories.Interfaces
         Task<Product> GetProductById(object id);
 
         IEnumerable<Product>? GetProductsWithPagination(
-            int page, int pageSize,
-            string columnName, string typeSort, string filter, out int total);
+            int page, int pageSize, string typeSort, string filter, out int total);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using ShopManagement_Backend_Core.Entities;
 using System.Data.Common;
 
@@ -6,13 +7,14 @@ namespace ShopManagement_Backend_DataAccess.Persistance
 {
     public partial class ShopManagementDbContext : DbContext
     {
-        public ShopManagementDbContext()
-        {
-        }
+        private readonly IConfiguration _configuration;
 
-        public ShopManagementDbContext(DbContextOptions<ShopManagementDbContext> options)
+        public ShopManagementDbContext(
+            DbContextOptions<ShopManagementDbContext> options,
+            IConfiguration configuration)
             : base(options)
         {
+            _configuration = configuration;
         }
 
         public virtual DbSet<Notification> Notifications { get; set; }
@@ -32,7 +34,19 @@ namespace ShopManagement_Backend_DataAccess.Persistance
         public virtual DbSet<User> Users { get; set; }
 
         //Dapper Connection
-        public DbConnection GetDbConnection() => Database.GetDbConnection();
+        public DbConnection GetDbConnection()
+        {
+            var connectionString = _configuration.GetConnectionString("ShopManagement"); 
+
+            if (string.IsNullOrEmpty(connectionString)) 
+            { 
+                throw new InvalidOperationException("The ConnectionString property has not been initialized."); 
+            }
+
+            var connection = Database.GetDbConnection(); 
+            connection.ConnectionString = connectionString; 
+            return connection;
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

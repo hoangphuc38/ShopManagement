@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShopManagement_Backend_Application.Models.Product
+namespace ShopManagement_Backend_Application.Models
 {
-    public class ProductPaginationResponse
+    public class PaginationResponse
     {
-        public ProductPaginationResponse() { }
+        public PaginationResponse() { }
 
-        public ProductPaginationResponse(int pageNumber, int pageSize, object result)
+        public PaginationResponse(int pageNumber, int pageSize, object result)
         {
             PageNumber = pageNumber;
             PageSize = pageSize;

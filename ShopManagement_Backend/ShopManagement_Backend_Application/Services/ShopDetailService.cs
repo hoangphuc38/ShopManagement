@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.ShopDetail;
 using ShopManagement_Backend_Application.Services.Interfaces;
+using ShopManagement_Backend_Core.Constants;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 using System.Reflection;
@@ -41,25 +42,56 @@ namespace ShopManagement_Backend_Application.Services
                 Assembly.GetExecutingAssembly());
         }
 
-        public async Task<BaseResponse> GetAllOfShop(int id)
+        public async Task<BaseResponse> GetShopDetailWithPagination(int id, ShopDetailPaginationRequest request)
         {
             try
             {
                 _logger.LogInformation($"[GetAllOfShop] Start to get all products in shop with id: {id}");
 
-                var response = _memoryCacheService.GetCacheData($"ShopDetail_{id}");
-
-                if (response == null)
+                if (request.PageIndex < 1 || request.PageSize < 1)
                 {
-                    var shopDetail = await _shopDetailRepo.GetAllAsyncByShopID(id);
-                    var shopDetailMapper = _mapper.Map<IEnumerable<ShopDetailResponse>>(shopDetail);
-
-                    response = new BaseResponse(shopDetailMapper);
-
-                    _memoryCacheService.SetCache($"ShopDetail_{id}", response);
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("InvalidPage") ?? "");
                 }
 
-                return response;
+                string filter = string.Empty;
+                int totalRecords;
+
+                if (!string.IsNullOrEmpty(request.SearchText))
+                {
+                    filter = $" AND p.ProductName LIKE '%{request.SearchText}%' ";
+                }
+
+                string sortOrder = request.Sort == SortType.Ascending ? SortType.AscendingSort : SortType.DescendingSort;
+
+                string sort = $" ORDER BY {request.Column} {sortOrder} ";
+
+                var shopDetail = _shopDetailRepo.GetShopDetailWithPagination(
+                    id,
+                    request.PageIndex, request.PageSize, sort, filter, out totalRecords);
+
+                if (shopDetail.Count() == 0)
+                {
+                    return new BaseResponse(
+                        StatusCodes.Status404NotFound,
+                        _resource.GetString("NotFoundProduct") ?? "");
+                }
+
+                int totalPages = totalRecords / request.PageSize + 1;
+
+                var shopDetailMapper = _mapper.Map<IEnumerable<ShopDetailResponse>>(shopDetail);
+
+                var response = new PaginationResponse
+                {
+                    PageNumber = request.PageIndex,
+                    PageSize = request.PageSize,
+                    TotalOfNumberRecord = totalRecords,
+                    TotalOfPages = totalPages,
+                    Results = shopDetailMapper
+                };
+
+                return new BaseResponse(response);
             }
             catch (Exception ex)
             {

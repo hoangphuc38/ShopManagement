@@ -1,12 +1,9 @@
 ﻿using Dapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_Core.Constants;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Persistance;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
-using System.Net.WebSockets;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ShopManagement_Backend_DataAccess.Repositories
 {
@@ -43,8 +40,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
         }
 
         public IEnumerable<Product> GetProductsWithPagination(
-            int page, int pageSize,
-            string columnName, string typeSort, string filter, out int total)
+            int page, int pageSize, string sort, string filter, out int total)
         {
             try
             {
@@ -52,29 +48,28 @@ namespace ShopManagement_Backend_DataAccess.Repositories
 
                 using var connection = Context.GetDbConnection();
 
-                string sortOrder = typeSort == SortType.Ascending ? SortType.AscendingSort : SortType.DescendingSort;
-
-                int skipRows = (page - 1) * pageSize;
-
                 string sqlQuery =
-                    @"SELECT ProductID, ProductName, Price 
-                      FROM PRODUCT
-                      WHERE IsDeleted = 0 " + filter +
-                      " ORDER BY " + columnName + " " + sortOrder +
-                      " OFFSET " + skipRows + " ROWS " +
-                      " FETCH NEXT " + pageSize +" ROWS ONLY;" +
-                      " " +
-                      "SELECT COUNT(ProductID) " +
-                      "FROM Product " +
-                      "WHERE IsDeleted = 0";
+                    $@"SELECT 
+		                    ProductID, 
+		                    ProductName, 
+		                    Price, 
+		                    COUNT(ProductID) OVER() AS TotalRecords  
+                    FROM PRODUCT
+                    WHERE IsDeleted = 0
+                    {filter}
+                    {sort} OFFSET @skipRows ROWS FETCH NEXT @pageSize ROWS ONLY";
 
-                using (var multi = connection.QueryMultiple(sqlQuery))
-                {
-                    total = multi.ReadSingle();
-                    var productList = multi.Read<Product>().ToList();
+                var parameters = new DynamicParameters();
+                parameters.Add("@skipRows", (page - 1) * pageSize);
+                parameters.Add("@pageSize", pageSize);
 
-                    return productList;
-                }
+                var productList = connection.Query<Product>(sqlQuery, parameters);
+
+                dynamic result = connection.QueryFirst(sqlQuery, parameters);
+
+                total = result.TotalRecords;
+
+                return productList;
             }
             catch (Exception ex)
             {

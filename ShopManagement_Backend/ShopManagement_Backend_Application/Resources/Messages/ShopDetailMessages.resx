@@ -150,4 +150,7 @@
   <data name="CreateWhenExist" xml:space="preserve">
     <value>Add quantity for detail because this detail has existed</value>
   </data>
+  <data name="InvalidPage" xml:space="preserve">
+    <value>Invalid page index, please try again</value>
+  </data>
 </root>

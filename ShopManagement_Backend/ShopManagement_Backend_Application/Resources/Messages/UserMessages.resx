@@ -138,4 +138,7 @@
   <data name="DeleteFailed" xml:space="preserve">
     <value>Failed to delete the user</value>
   </data>
+  <data name="InvalidPage" xml:space="preserve">
+    <value>Invalid page index, please try again</value>
+  </data>
 </root>
