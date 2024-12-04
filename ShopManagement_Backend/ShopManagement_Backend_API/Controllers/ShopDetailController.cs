@@ -8,7 +8,7 @@ namespace ShopManagement_Backend_API.Controllers
 {
     [Route("api/shop-detail")]
     [ApiController]
-    [Authorize]
+    [CustomAttributes.Authorize]
     public class ShopDetailController : ControllerBase
     {
         private readonly IShopDetailService _shopDetailService;

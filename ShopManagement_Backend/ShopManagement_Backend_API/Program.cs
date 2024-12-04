@@ -40,6 +40,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
@@ -47,8 +49,6 @@ app.UseAuthentication();
 app.UseMiddleware<AuthorizationMiddleware>();
 
 app.UseAuthorization();
-
-app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
 
