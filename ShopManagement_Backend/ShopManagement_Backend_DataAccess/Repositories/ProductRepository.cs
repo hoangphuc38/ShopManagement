@@ -35,7 +35,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             catch (Exception ex)
             {
                 _logger.LogError($"[GetProductByID] Error: {ex.Message}");
-                throw new Exception(ex.Message);
+                return new Product();
             }
         }
 
@@ -74,7 +74,8 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             catch (Exception ex)
             {
                 _logger.LogError($"[GetProductsWithPagination] Error: {ex.Message}");
-                throw new Exception(ex.Message);
+                total = 0;
+                return new List<Product>();
             }
         }
     }

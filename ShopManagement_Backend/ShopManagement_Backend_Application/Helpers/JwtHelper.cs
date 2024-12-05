@@ -24,8 +24,8 @@ namespace ShopManagement_Backend_Application.Helpers
         {
             var authClaims = new List<Claim>
             {
+                new Claim(ClaimTypes.Email, user.UserName),
                 new Claim(ClaimTypes.Name, user.FullName),
-                new Claim(ClaimTypes.Email, user.UserName)
             };
 
             if (!string.IsNullOrEmpty(role))

@@ -19,6 +19,7 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymousAttribute]
         public async Task<IActionResult> Register([FromBody] RegisterUser register)
         {
             var result = await _accountService.Register(register);

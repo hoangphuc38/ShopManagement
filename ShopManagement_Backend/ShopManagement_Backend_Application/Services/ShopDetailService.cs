@@ -71,11 +71,9 @@ namespace ShopManagement_Backend_Application.Services
                     id,
                     request.PageIndex, request.PageSize, sort, filter, out totalRecords);
 
-                if (shopDetail.Count() == 0)
+                if (totalRecords == 0)
                 {
-                    return new BaseResponse(
-                        StatusCodes.Status404NotFound,
-                        _resource.GetString("NotFoundProduct") ?? "");
+                    return new BaseResponse(new PaginationResponse(request.PageIndex, request.PageSize, shopDetail));
                 }
 
                 int totalPages = totalRecords / request.PageSize + 1;

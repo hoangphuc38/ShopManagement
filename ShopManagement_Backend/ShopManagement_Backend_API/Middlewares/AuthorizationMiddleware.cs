@@ -27,7 +27,7 @@ namespace ShopManagement_Backend_API.Middlewares
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, IUserRepository userRepo, IJwtHelper jwtHelper)
+        public async Task InvokeAsync(HttpContext context, IUserRepository userRepo, IRoleRepository roleRepo, IJwtHelper jwtHelper)
         {
             if (context.Request.Headers.TryGetValue("Authorization", out _))
             {
@@ -41,12 +41,16 @@ namespace ShopManagement_Backend_API.Middlewares
                     return;  
                 }
 
-                var fullName = validateToken.Claims.First().Value;
+                var userName = validateToken.Claims.First().Value;
 
-                var userInfo = await userRepo.GetFirstOrNullAsync(c => c.FullName == fullName);
+                var userInfo = await userRepo.GetFirstOrNullAsync(c => c.UserName == userName);
 
                 if (userInfo != null)
                 {
+                    var role = await roleRepo.GetFirstAsync(c => c.RoleId == userInfo.RoleId);
+
+                    userInfo.Role = role;
+
                     context.Items["User"] = userInfo;
                 }
             }

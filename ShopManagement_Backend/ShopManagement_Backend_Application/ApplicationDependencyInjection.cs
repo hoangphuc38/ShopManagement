@@ -29,8 +29,6 @@ namespace ShopManagement_Backend_Application
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IMemoryCacheService, MemoryCacheService>();
             services.AddScoped<IJwtHelper, JwtHelper>();
-
-            services.AddScoped<PaginationHelper<Product>>();
         }
 
         private static void AddAutoMapper(this IServiceCollection services)

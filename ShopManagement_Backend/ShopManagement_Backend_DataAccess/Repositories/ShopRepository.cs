@@ -50,7 +50,8 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             catch (Exception ex)
             {
                 _logger.LogError($"[GetShopsWithPagination] Error: {ex.Message}");
-                throw new Exception(ex.Message);
+                total = 0;
+                return new List<Shop>();
             }
         }
 
@@ -93,7 +94,8 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             catch (Exception ex)
             {
                 _logger.LogError($"[GetShopByUserID] Error: {ex.Message}");
-                throw new Exception(ex.Message);
+                total = 0;
+                return new List<Shop>();
             }
         }
     }

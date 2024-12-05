@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using ShopManagement_Backend_API.CustomAttributes;
 using ShopManagement_Backend_Application.Models.User;
 using ShopManagement_Backend_Application.Services.Interfaces;
 
@@ -19,9 +19,10 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllUser()
+        [Role(Roles = "admin")]
+        public async Task<IActionResult> GetUsersWithPagination([FromQuery] UserPaginationRequest request)
         {
-            var result = await _userService.GetAllUser();
+            var result = await _userService.GetUsersWithPagination(request);
 
             return StatusCode(result.Status, result);
         }
@@ -43,6 +44,7 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Role(Roles = "admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             var result = await _userService.DeleteUser(id);

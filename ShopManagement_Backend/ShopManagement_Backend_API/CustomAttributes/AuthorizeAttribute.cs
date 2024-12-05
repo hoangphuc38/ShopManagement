@@ -23,6 +23,16 @@ namespace ShopManagement_Backend_API.CustomAttributes
                 context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
                 return;
             }
+
+            var rolesAttribute = context.ActionDescriptor.EndpointMetadata.OfType<RoleAttribute>().FirstOrDefault();
+            if (rolesAttribute == null)
+                return;
+
+            if (rolesAttribute.Roles.Contains(user.Role.RoleName))
+                return;
+
+            context.Result = new JsonResult(new { message = "Invalid authorized to access" }) { StatusCode = StatusCodes.Status403Forbidden };
+            return;
         }
     }
 }

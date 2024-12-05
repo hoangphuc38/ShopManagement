@@ -70,7 +70,8 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             catch (Exception ex)
             {
                 _logger.LogError($"[GetAllAsyncByShopID] Error: {ex.Message}");
-                throw new Exception(ex.Message);
+                total = 0;
+                return new List<ShopDetail>();
             }
         }
     }

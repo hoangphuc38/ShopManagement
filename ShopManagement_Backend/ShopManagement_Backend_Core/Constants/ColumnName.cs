@@ -17,5 +17,7 @@ namespace ShopManagement_Backend_Core.Constants
         public const string ShopName = "ShopName";
 
         public const string ShopID = "ShopID";
+
+        public const string FullName = "FullName";
     }
 }

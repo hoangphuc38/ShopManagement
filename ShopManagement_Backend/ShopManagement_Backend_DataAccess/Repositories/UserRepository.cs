@@ -38,5 +38,46 @@ namespace ShopManagement_Backend_DataAccess.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
+        public IEnumerable<User>? GetUsersWithPagination(
+            int page, int pageSize, string sort, string filter, out int total)
+        {
+            try
+            {
+                _logger.LogInformation($"[GetUsersWithPagination] Start to connect to db");
+                using var connection = Context.GetDbConnection();
+
+                string sqlQuery =
+                    $@"SELECT 
+		                    ID, 
+		                    UserName, 
+		                    FullName,
+                            Address,
+                            SignUpDate,
+		                    COUNT(ID) OVER() AS TotalRecords  
+                    FROM Users
+                    WHERE IsDeleted = 0 AND RoleID = 2
+                    {filter}
+                    {sort} OFFSET @skipRows ROWS FETCH NEXT @pageSize ROWS ONLY";
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@skipRows", (page - 1) * pageSize);
+                parameters.Add("@pageSize", pageSize);
+
+                var userList = connection.Query<User>(sqlQuery, parameters);
+
+                dynamic result = connection.QueryFirst(sqlQuery, parameters);
+
+                total = result.TotalRecords;
+
+                return userList;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"[GetUsersWithPagination] Error: {ex.Message}");
+                total = 0;
+                return new List<User>();
+            }
+        }
     }
 }

@@ -27,7 +27,6 @@ namespace ShopManagement_Backend_Application.Services
         private readonly IMemoryCacheService _memoryCacheService;
         private readonly IHubContext<StockHub> _stockHub;
         private readonly ResourceManager _resource;
-        private readonly PaginationHelper<Product> _pagination;
 
         public ProductService(
             IMapper mapper,
@@ -38,8 +37,7 @@ namespace ShopManagement_Backend_Application.Services
             IUserRepository userRepo,
             ILogger<ProductService> logger,
             IMemoryCacheService memoryCacheService,
-            IHubContext<StockHub> stockHub,
-            PaginationHelper<Product> pagination)
+            IHubContext<StockHub> stockHub)
         {
             _mapper = mapper;
             _productRepo = productRepo;
@@ -53,7 +51,6 @@ namespace ShopManagement_Backend_Application.Services
             _resource = new ResourceManager(
                 "ShopManagement_Backend_Application.Resources.Messages.ProductMessages",
                 Assembly.GetExecutingAssembly());
-            _pagination = pagination;
         }
 
         public async Task<BaseResponse> GetProductsWithPagination(ProductPaginationRequest request)

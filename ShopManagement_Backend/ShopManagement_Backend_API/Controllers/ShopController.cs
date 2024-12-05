@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShopManagement_Backend_API.CustomAttributes;
-using ShopManagement_Backend_Application.Models.Product;
 using ShopManagement_Backend_Application.Models.Shop;
 using ShopManagement_Backend_Application.Services.Interfaces;
 
@@ -21,6 +20,7 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpGet]
+        [RoleAttribute(Roles = "admin")]
         public async Task<IActionResult> GetShopsWithPagination([FromQuery] ShopPaginationRequest request)
         {
             var result = await _shopService.GetShopsWithPagination(request);
