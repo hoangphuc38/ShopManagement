@@ -5,7 +5,7 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<BaseResponse> GetAllUser();
+        Task<BaseResponse> GetUsersWithPagination(UserPaginationRequest request);
 
         Task<BaseResponse> GetUser(int id);
 

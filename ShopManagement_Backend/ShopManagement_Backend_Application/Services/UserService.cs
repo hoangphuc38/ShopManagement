@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using ShopManagement_Backend_Application.Models;
+using ShopManagement_Backend_Application.Models.Product;
 using ShopManagement_Backend_Application.Models.User;
 using ShopManagement_Backend_Application.Services.Interfaces;
+using ShopManagement_Backend_Core.Constants;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 using System.Reflection;
@@ -41,24 +43,55 @@ namespace ShopManagement_Backend_Application.Services
                 Assembly.GetExecutingAssembly());
         }
 
-        public async Task<BaseResponse> GetAllUser()
+        public async Task<BaseResponse> GetUsersWithPagination(UserPaginationRequest request)
         {
             try
             {
                 _logger.LogInformation($"[GetAllUser] Start to get all users");
-                var response = _memoryCacheService.GetCacheData("UserList");
 
-                if (response == null)
+                // validate request
+                if (request.PageIndex < 1 || request.PageSize < 1)
                 {
-                    var userList = await _userRepo.GetAllAsync(c => !c.IsDeleted);
-                    var userListMapper = _mapper.Map<List<UserResponse>>(userList);
-
-                    response = new BaseResponse(userListMapper);
-
-                    _memoryCacheService.SetCache("UserList", response);
+                    return new BaseResponse(
+                        StatusCodes.Status400BadRequest,
+                        _resource.GetString("InvalidPage") ?? "");
                 }
-                
-                return response;
+
+                // logic
+                string filter = string.Empty;
+                int totalRecords;
+
+                if (!string.IsNullOrEmpty(request.SearchText))
+                {
+                    filter = $" AND FullName LIKE '%{request.SearchText}%' ";
+                }
+
+                string sortOrder = request.Sort == SortType.Ascending ? SortType.AscendingSort : SortType.DescendingSort;
+
+                string sort = $" ORDER BY {request.Column} {sortOrder} ";
+
+                var userList = _userRepo.GetUsersWithPagination(
+                    request.PageIndex, request.PageSize, sort, filter, out totalRecords);
+
+                if (totalRecords == 0)
+                {
+                    return new BaseResponse(new PaginationResponse(request.PageIndex, request.PageSize, userList));
+                }
+
+                int totalPages = totalRecords / request.PageSize + 1;
+
+                var userMapperList = _mapper.Map<List<UserResponse>>(userList);
+
+                var response = new PaginationResponse
+                {
+                    PageNumber = request.PageIndex,
+                    PageSize = request.PageSize,
+                    TotalOfNumberRecord = totalRecords,
+                    TotalOfPages = totalPages,
+                    Results = userMapperList
+                };
+
+                return new BaseResponse(response);
             }
             catch (Exception ex)
             {
