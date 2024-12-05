@@ -6,7 +6,7 @@ using ShopManagement_Backend_Application.Services.Interfaces;
 
 namespace ShopManagement_Backend_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/account")]
     [ApiController]
     [Authorize]
     public class AccountController : ControllerBase

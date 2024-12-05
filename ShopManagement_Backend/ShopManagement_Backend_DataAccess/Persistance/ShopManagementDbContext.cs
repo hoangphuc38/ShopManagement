@@ -92,6 +92,7 @@ namespace ShopManagement_Backend_DataAccess.Persistance
 
                 entity.Property(e => e.ProductId).HasColumnName("ProductID");
                 entity.Property(e => e.ProductName).HasMaxLength(100);
+                entity.Property(e => e.ImageUrl).HasMaxLength(500);
             });
 
             modelBuilder.Entity<Role>(entity =>

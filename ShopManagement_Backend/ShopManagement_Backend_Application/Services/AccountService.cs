@@ -17,7 +17,7 @@ namespace ShopManagement_Backend_Application.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly IJwtHelper _jwtHelper;
+        private readonly ITokenService _tokenService;
         private readonly IUserRepository _userRepo;
         private readonly ITokenRepository _tokenRepo;
         private readonly IRoleRepository _roleRepo;
@@ -25,13 +25,13 @@ namespace ShopManagement_Backend_Application.Services
         private readonly ResourceManager _resource;
 
         public AccountService(
-            IJwtHelper jwtHelper,
+            ITokenService tokenService,
             IUserRepository userRepo,
             ITokenRepository tokenRepo,
             IRoleRepository roleRepo,
             ILogger<AccountService> logger)
         {
-            _jwtHelper = jwtHelper;
+            _tokenService = tokenService;
             _userRepo = userRepo;
             _tokenRepo = tokenRepo;
             _roleRepo = roleRepo;
@@ -134,7 +134,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 var loginResponse = new LoginResponseModel
                 {
-                    Token = _jwtHelper.GenerateToken(user, userRoles.RoleName),
+                    Token = _tokenService.GenerateToken(user, userRoles.RoleName),
                     UserName = user.UserName,
                     FullName = user.FullName,
                     Role = userRoles.RoleName ?? "",
@@ -142,7 +142,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 var refreshToken = new Token
                 {
-                    RefreshToken = _jwtHelper.GenerateRefreshToken(),
+                    RefreshToken = _tokenService.GenerateRefreshToken(),
                     ExpiredDate = DateTime.Now.AddDays(7),
                     UserID = user.Id,
                 };
@@ -197,7 +197,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 var response = new RefreshTokenResponse
                 {
-                    NewAccessToken = _jwtHelper.GenerateToken(user, role.RoleName)
+                    NewAccessToken = _tokenService.GenerateToken(user, role.RoleName)
                 };
 
                 return new BaseResponse(response);

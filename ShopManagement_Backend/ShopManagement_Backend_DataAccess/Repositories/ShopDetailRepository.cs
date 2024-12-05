@@ -27,6 +27,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
                         s.Quantity, 
                         p.ProductName, 
                         p.Price,
+                        p.ImageUrl,
                         COUNT(s.ProductID) OVER() as TotalRecords
                       FROM SHOPDETAIL as s
                       INNER JOIN PRODUCT as p ON s.ProductID = p.ProductID 

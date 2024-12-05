@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace ShopManagement_Backend_Application.Models.Product
 {
@@ -9,5 +10,8 @@ namespace ShopManagement_Backend_Application.Models.Product
 
         [Required]
         public double? Price { get; set; }
+
+        [Required]
+        public string? ImageUrl { get; set; }
     }
 }

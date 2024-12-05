@@ -21,7 +21,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
                 using var connection = Context.GetDbConnection();
 
                 var sqlQuery = 
-                    @"SELECT ProductID, ProductName, Price 
+                    @"SELECT ProductID, ProductName, Price, ImageUrl 
                       FROM PRODUCT 
                       WHERE ProductID = @ProductID AND IsDeleted = 0";
 
@@ -35,7 +35,7 @@ namespace ShopManagement_Backend_DataAccess.Repositories
             catch (Exception ex)
             {
                 _logger.LogError($"[GetProductByID] Error: {ex.Message}");
-                return new Product();
+                return null;
             }
         }
 
@@ -52,7 +52,8 @@ namespace ShopManagement_Backend_DataAccess.Repositories
                     $@"SELECT 
 		                    ProductID, 
 		                    ProductName, 
-		                    Price, 
+		                    Price,
+                            ImageUrl,
 		                    COUNT(ProductID) OVER() AS TotalRecords  
                     FROM PRODUCT
                     WHERE IsDeleted = 0

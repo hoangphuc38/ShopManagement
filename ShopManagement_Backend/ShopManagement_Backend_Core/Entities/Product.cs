@@ -9,6 +9,8 @@ public class Product
 
     public string? ProductName { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public double? Price { get; set; }
 
     public bool IsDeleted { get; set; }

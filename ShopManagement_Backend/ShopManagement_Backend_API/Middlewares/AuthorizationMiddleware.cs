@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using ShopManagement_Backend_Application.Helpers;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Services;
+using ShopManagement_Backend_Application.Services.Interfaces;
 using ShopManagement_Backend_Core.Entities;
 using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
@@ -27,7 +28,7 @@ namespace ShopManagement_Backend_API.Middlewares
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, IUserRepository userRepo, IRoleRepository roleRepo, IJwtHelper jwtHelper)
+        public async Task InvokeAsync(HttpContext context, IUserRepository userRepo, IRoleRepository roleRepo)
         {
             if (context.Request.Headers.TryGetValue("Authorization", out _))
             {

@@ -5,7 +5,7 @@ using ShopManagement_Backend_Application.Services.Interfaces;
 
 namespace ShopManagement_Backend_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/user")]
     [ApiController]
     [CustomAttributes.Authorize]
     public class UserController : ControllerBase
