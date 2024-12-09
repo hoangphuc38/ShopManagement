@@ -14,8 +14,6 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
 
         Task<BaseResponse> AddRole(string role);
 
-        Task<BaseResponse> AssignRole(string email, string role);
-
         Task<BaseResponse> Logout(int userID);
     }
 }

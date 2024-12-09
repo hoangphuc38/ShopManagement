@@ -74,38 +74,6 @@ namespace ShopManagement_Backend_Application.Services
             }
         }
 
-        public async Task<BaseResponse> AssignRole(string email, string role)
-        {
-            try
-            {
-                _logger.LogInformation($"[AssignRole] Start to assign role {role} to email {email}");
-
-                var user = await _userRepo.GetFirstOrNullAsync(t => !t.IsDeleted && t.UserName == email);
-
-                if (user == null)
-                {
-                    return new BaseResponse(
-                        StatusCodes.Status400BadRequest, 
-                        _resource.GetString("NotFoundUser") ?? "");
-                }
-
-                var roleName = await _roleRepo.GetFirstAsync(t => t.RoleName == role);
-
-                user.RoleId = roleName.RoleId;
-
-                await _userRepo.UpdateAsync(user);
-
-                return new BaseResponse(_resource.GetString("AssignRoleSuccess") ?? "");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"[Assign] Error: {ex.Message}");
-                return new BaseResponse(
-                    StatusCodes.Status500InternalServerError, 
-                    _resource.GetString("AssignRoleFailed") ?? "");
-            }
-        }
-
         public async Task<BaseResponse> Login(LoginUser login)
         {
             try

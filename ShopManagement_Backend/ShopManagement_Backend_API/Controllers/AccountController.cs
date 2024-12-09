@@ -52,14 +52,6 @@ namespace ShopManagement_Backend_API.Controllers
             return StatusCode(result.Status, result);
         }
 
-        [HttpPost("assign-role")]
-        public async Task<IActionResult> AssignRole(string email, string role)
-        {
-            var result = await _accountService.AssignRole(email, role);
-
-            return StatusCode(result.Status, result);
-        }
-
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(int userID)
         {

@@ -67,7 +67,7 @@ namespace ShopManagement_Backend_Application.Services
 
         public async Task<BaseResponse> DeleteAsync(AssetDeleteRequest request)
         {
-            var deletionParam = new DeletionParams(request.Url);
+            var deletionParam = new DeletionParams(request.PublicId);
             var result = await _cloudinary.DestroyAsync(deletionParam);
 
             if (result.Result == "ok")

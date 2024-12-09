@@ -22,16 +22,19 @@ namespace ShopManagement.Api.Test.Controllers
         }
 
         [Fact]
-        public void GetAll_OnSuccess_ShouldReturnBaseResponse()
+        public async Task GetProductWithPagination_OnSuccess_ShouldReturnBaseResponse()
         {
             //Arrange
             var productObject = new ProductTest();
-            var response = new BaseResponse(productObject.Products);
+            var response = new BaseResponse(productObject.ProductPagination);
+            var request = new ProductPaginationRequest();
 
-            _productServiceMock.Setup(service => service.GetAll()).Returns(response);
+            _productServiceMock.Setup(
+                service => service.GetProductsWithPagination(It.IsAny<ProductPaginationRequest>()))
+                .ReturnsAsync(response);
 
             //Act
-            var result = _productController.GetAll();
+            var result = await _productController.GetProductsWithPagination(request);
 
             //Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -43,16 +46,17 @@ namespace ShopManagement.Api.Test.Controllers
 
         [Theory]
         [ClassData(typeof(ProductTest))]
-        public void GetDetailProduct_OnSuccess_ShouldReturnBaseResponse(int productID)
+        public async Task GetDetailProduct_OnSuccess_ShouldReturnBaseResponse(int productID)
         {
             //Arrange
             var productObject = new ProductTest();
             var response = new BaseResponse(productObject.Products[0]);
 
-            _productServiceMock.Setup(service => service.GetDetailProduct(productID)).Returns(response);
+            _productServiceMock.Setup(service => service.GetDetailProduct(It.IsAny<int>()))
+                .ReturnsAsync(response);
 
             //Act
-            var result = _productController.GetDetailProduct(productID);
+            var result = await _productController.GetDetailProduct(productID);
 
             //Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -64,15 +68,16 @@ namespace ShopManagement.Api.Test.Controllers
 
         [Theory]
         [InlineData(1)]
-        public void GetDetailProduct_NotFound_ShouldReturnStatusCode500(int productID)
+        public async Task GetDetailProduct_NotFound_ShouldReturnStatusCode500(int productID)
         {
             //Arrange
             var response = new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to get product");
 
-            _productServiceMock.Setup(service => service.GetDetailProduct(productID)).Returns(response);
+            _productServiceMock.Setup(service => service.GetDetailProduct(It.IsAny<int>()))
+                .ReturnsAsync(response);
 
             //Act
-            var result = _productController.GetDetailProduct(productID);
+            var result = await _productController.GetDetailProduct(productID);
 
             //Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -83,16 +88,21 @@ namespace ShopManagement.Api.Test.Controllers
         }
 
         [Fact]
-        public void CreateProduct_OnSuccess_ShouldReturnStatusCode200()
+        public async Task CreateProduct_OnSuccess_ShouldReturnStatusCode200()
         {
-            //Arrange
-            ProductRequest request = new ProductRequest { ProductName = "Test", Price = 100 };
+            ////Arrange
+            ProductRequest request = new ProductRequest { 
+                ProductName = "Test", 
+                Price = 100,
+                ImageUrl = "testurl",
+            };
             var response = new BaseResponse("Create new product successfully");
 
-            _productServiceMock.Setup(service => service.CreateProduct(request)).Returns(response);
+            _productServiceMock.Setup(service => service.CreateProduct(It.IsAny<ProductRequest>()))
+                .ReturnsAsync(response);
 
             //Act
-            var result = _productController.CreateProduct(request);
+            var result = await _productController.CreateProduct(request);
 
             //Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -102,16 +112,22 @@ namespace ShopManagement.Api.Test.Controllers
         }
 
         [Fact]
-        public void CreateProduct_Error_ShouldReturnStatusCode500()
+        public async Task CreateProduct_Error_ShouldReturnStatusCode500()
         {
             //Arrange
-            ProductRequest request = new ProductRequest { ProductName = "Test" };
+            ProductRequest request = new ProductRequest
+            {
+                ProductName = "Test",
+                Price = 100,
+                ImageUrl = "testurl",
+            };
             var response = new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to create new product");
 
-            _productServiceMock.Setup(service => service.CreateProduct(request)).Returns(response);
+            _productServiceMock.Setup(service => service.CreateProduct(It.IsAny<ProductRequest>()))
+                .ReturnsAsync(response);
 
             //Act
-            var result = _productController.CreateProduct(request);
+            var result = await _productController.CreateProduct(request);
 
             //Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -122,16 +138,16 @@ namespace ShopManagement.Api.Test.Controllers
 
         [Theory]
         [InlineData(1)]
-        public void DeleteProduct_OnSuccess_ShouldReturnStatusCode200(int productID)
+        public async Task DeleteProduct_OnSuccess_ShouldReturnStatusCode200(int productID)
         {
             //Arrange
             var response = new BaseResponse("Delete product successfully");
 
-            _productServiceMock.Setup(service => service.DeleteProduct(productID))
-                .Returns(response);
+            _productServiceMock.Setup(service => service.DeleteProduct(It.IsAny<int>()))
+                .ReturnsAsync(response);
 
             //Act
-            var result = _productController.DeleteProduct(productID);
+            var result = await _productController.DeleteProduct(productID);
 
             //Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -142,16 +158,16 @@ namespace ShopManagement.Api.Test.Controllers
 
         [Theory]
         [InlineData(1)]
-        public void DeleteProduct_AlreadyDeleted_ShouldReturnStatusCode500(int productID)
+        public async Task DeleteProduct_AlreadyDeleted_ShouldReturnStatusCode500(int productID)
         {
             //Arrange
             var response = new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to delete product successfully");
 
-            _productServiceMock.Setup(service => service.DeleteProduct(productID))
-                .Returns(response);
+            _productServiceMock.Setup(service => service.DeleteProduct(It.IsAny<int>()))
+                .ReturnsAsync(response);
 
             //Act
-            var result = _productController.DeleteProduct(productID);
+            var result = await _productController.DeleteProduct(productID);
 
             //Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -162,17 +178,22 @@ namespace ShopManagement.Api.Test.Controllers
 
         [Theory]
         [InlineData(1)]
-        public void UpdateProduct_OnSuccess_ShouldReturnStatusCode200(int productID)
+        public async Task UpdateProduct_OnSuccess_ShouldReturnStatusCode200(int productID)
         {
             //Arrange
-            ProductRequest request = new ProductRequest { ProductName = "Test", Price = 100 };
+            ProductRequest request = new ProductRequest
+            {
+                ProductName = "Test",
+                Price = 100,
+                ImageUrl = "testurl",
+            };
             var response = new BaseResponse("Update product successfully");
 
-            _productServiceMock.Setup(service => service.UpdateProduct(productID, request))
-                .Returns(response);
+            _productServiceMock.Setup(service => service.UpdateProduct(It.IsAny<int>(), It.IsAny<ProductRequest>()))
+                .ReturnsAsync(response);
 
             //Action
-            var result = _productController.UpdateProduct(productID, request);
+            var result = await _productController.UpdateProduct(productID, request);
 
             //Assert
             var okResult = Assert.IsType<ObjectResult>(result);
@@ -183,17 +204,22 @@ namespace ShopManagement.Api.Test.Controllers
 
         [Theory]
         [InlineData(1)]
-        public void UpdateProduct_Error_ShouldReturnStatusCode500(int productID)
+        public async Task UpdateProduct_Error_ShouldReturnStatusCode500(int productID)
         {
             //Arrange
-            ProductRequest request = new ProductRequest { ProductName = "Test", Price = 100 };
+            ProductRequest request = new ProductRequest
+            {
+                ProductName = "Test",
+                Price = 100,
+                ImageUrl = "testurl",
+            };
             var response = new BaseResponse(StatusCodes.Status500InternalServerError, "Failed to update product successfully");
 
-            _productServiceMock.Setup(service => service.UpdateProduct(productID, request))
-                .Returns(response);
+            _productServiceMock.Setup(service => service.UpdateProduct(It.IsAny<int>(), It.IsAny<ProductRequest>()))
+                .ReturnsAsync(response);
 
             //Action
-            var result = _productController.UpdateProduct(productID, request);
+            var result = await _productController.UpdateProduct(productID, request);
 
             //Assert
             var okResult = Assert.IsType<ObjectResult>(result);

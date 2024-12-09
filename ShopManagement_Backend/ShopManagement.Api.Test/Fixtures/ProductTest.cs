@@ -1,5 +1,5 @@
-﻿using ShopManagement_Backend_Application.Models.Product;
-using ShopManagement_Backend_Core.Entities;
+﻿using ShopManagement_Backend_Application.Models;
+using ShopManagement_Backend_Application.Models.Product;
 using System.Collections;
 
 namespace ShopManagement.Api.Test.Fixtures
@@ -12,31 +12,38 @@ namespace ShopManagement.Api.Test.Fixtures
             {
                 ProductId = 1,
                 ProductName = "Áo Adidas",
-                Price = 200
+                Price = 200,
+                ImageUrl = "link1",
             },
             new ProductResponse
             {
                 ProductId = 2,
                 ProductName = "Argentina 2022",
-                Price = 500
+                Price = 500,
+                ImageUrl = "link2",
             }
         };
 
-        public List<Product> ProductList { get; set; } = new List<Product>
+        public PaginationResponse ProductPagination = new PaginationResponse
         {
-            new Product
+            PageNumber = 1,
+            PageSize = 10,
+            TotalOfPages = 1,
+            TotalOfNumberRecord = 2,
+            Results = new List<ProductResponse>
             {
-                ProductId = 1,
-                ProductName = "Argentina 2022",
-                Price = 200,
-                IsDeleted = false,
-            },
-            new Product
-            {
-                ProductId = 2,
-                ProductName = "Brazil 2022",
-                Price = 200,
-                IsDeleted = false,
+                new ProductResponse
+                {
+                    ProductId = 1,
+                    ProductName = "Áo Adidas",
+                    Price = 200
+                },
+                new ProductResponse
+                {
+                    ProductId = 2,
+                    ProductName = "Argentina 2022",
+                    Price = 500
+                }
             },
         };
 

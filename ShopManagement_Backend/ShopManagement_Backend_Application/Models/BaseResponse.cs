@@ -8,8 +8,6 @@ namespace ShopManagement_Backend_Application.Models
         public string? Message { get; set; }
         public object? Data { get; set; }
 
-        public BaseResponse() { }
-
         public BaseResponse(string message)
         {
             Status = StatusCodes.Status200OK;
