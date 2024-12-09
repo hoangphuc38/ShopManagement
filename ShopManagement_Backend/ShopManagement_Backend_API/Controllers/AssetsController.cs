@@ -24,5 +24,13 @@ namespace ShopManagement_Backend_API.Controllers
 
             return StatusCode(result.Status, result);
         }
+
+        [HttpPost("delete-image")]
+        public async Task<IActionResult> DeleteAsync(AssetDeleteRequest request)
+        {
+            var result = await _imageService.DeleteAsync(request);
+
+            return StatusCode(result.Status, result);
+        }
     }
 }

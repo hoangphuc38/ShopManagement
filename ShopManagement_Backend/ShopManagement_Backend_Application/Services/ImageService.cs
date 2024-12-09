@@ -56,12 +56,28 @@ namespace ShopManagement_Backend_Application.Services
                 uploadResult = await _cloudinary.UploadAsync(uploadParams);
             }
 
-            return new BaseResponse
+            var response = new AssetResponse
             {
-                Status = 200,
-                Message = "Success",
-                Data = uploadResult.Url.ToString()
+                UrlImage = uploadResult.Url.ToString(),
+                PublicId = uploadResult.PublicId,
             };
+
+            return new BaseResponse(response);
+        }
+
+        public async Task<BaseResponse> DeleteAsync(AssetDeleteRequest request)
+        {
+            var deletionParam = new DeletionParams(request.Url);
+            var result = await _cloudinary.DestroyAsync(deletionParam);
+
+            if (result.Result == "ok")
+            {
+                return new BaseResponse("Delete image successfully");
+            }
+            else
+            {
+                return new BaseResponse(StatusCodes.Status400BadRequest, "Failed to delete image");
+            }
         }
     }
 }

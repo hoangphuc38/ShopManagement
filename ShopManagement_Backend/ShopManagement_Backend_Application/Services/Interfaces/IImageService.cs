@@ -12,5 +12,7 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
     public interface IImageService
     {
         Task<BaseResponse> UploadAsync(AssetRequest request);
+
+        Task<BaseResponse> DeleteAsync(AssetDeleteRequest request);
     }
 }
