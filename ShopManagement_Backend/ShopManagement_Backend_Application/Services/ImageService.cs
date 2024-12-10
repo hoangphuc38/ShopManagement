@@ -53,6 +53,7 @@ namespace ShopManagement_Backend_Application.Services
                                         .Gravity("face"),
                     Folder = request.Key
                 };
+
                 uploadResult = await _cloudinary.UploadAsync(uploadParams);
             }
 
@@ -70,14 +71,12 @@ namespace ShopManagement_Backend_Application.Services
             var deletionParam = new DeletionParams(request.PublicId);
             var result = await _cloudinary.DestroyAsync(deletionParam);
 
-            if (result.Result == "ok")
+            if (result.Result != "ok")
             {
-                return new BaseResponse("Delete image successfully");
+                return new BaseResponse(StatusCodes.Status400BadRequest, "Failed to delete image");        
             }
-            else
-            {
-                return new BaseResponse(StatusCodes.Status400BadRequest, "Failed to delete image");
-            }
+
+            return new BaseResponse("Delete image successfully");
         }
     }
 }

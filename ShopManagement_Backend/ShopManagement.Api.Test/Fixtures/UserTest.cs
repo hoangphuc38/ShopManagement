@@ -2,6 +2,7 @@
 using ShopManagement_Backend_Application.Models.ShopDetail;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.User;
+using ShopManagement_Backend_Core.Entities;
 
 namespace ShopManagement.Api.Test.Fixtures
 {
@@ -33,6 +34,41 @@ namespace ShopManagement.Api.Test.Fixtures
             FullName = "Test",
             Address = "ABC",
             SignUpDate = DateTime.Now,
+        };
+
+        public User user = new User
+        {
+            Id = 1,
+            FullName = "Test",
+            UserName = "test@gmail.com",
+            Address = "abc",
+            SignUpDate = DateTime.Now,
+            RoleId = 1,
+            IsDeleted = false,
+        };
+
+        public List<User> userList = new List<User>
+        {
+            new User
+            {
+                Id = 1,
+                FullName= "Test",
+                UserName = "test@gmail.com",
+                Address = "abc",
+                SignUpDate= DateTime.Now,
+                RoleId = 1,
+                IsDeleted = false,
+            },
+            new User
+            {
+                Id = 2,
+                FullName= "Test",
+                UserName = "test@gmail.com",
+                Address = "abc",
+                SignUpDate= DateTime.Now,
+                RoleId = 1,
+                IsDeleted = false,
+            },
         };
     }
 }

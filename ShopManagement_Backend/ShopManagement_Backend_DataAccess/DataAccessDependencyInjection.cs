@@ -32,7 +32,7 @@ namespace ShopManagement_Backend_DataAccess
 
         private static void AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
-            var databaseConfig = configuration.GetConnectionString("ShopManagement"); ;
+            var databaseConfig = configuration.GetConnectionString("ShopManagement");
 
             services.AddDbContext<ShopManagementDbContext>(options =>
             {

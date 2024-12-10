@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using ShopManagement_Backend_Application.Helpers;
 using ShopManagement_Backend_Application.Hubs;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Product;
