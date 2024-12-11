@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.Data;
 using ShopManagement_Backend_Application.Models.Token;
 using ShopManagement_Backend_Application.Models.User;
+using ShopManagement_Backend_Core.Entities;
 
 namespace ShopManagement.Api.Test.Fixtures
 {
@@ -39,5 +40,15 @@ namespace ShopManagement.Api.Test.Fixtures
         {
             NewAccessToken = "dhjasjhdkasdhk"
         };
+
+        public Token token = new Token
+        {
+            TokenId = 1,
+            RefreshToken = "hadkajdhjasdhak",
+            ExpiredDate = DateTime.Now.AddDays(5),
+            UserID = 1,
+        };
+
+        public Token tokenNull = null;
     }
 }

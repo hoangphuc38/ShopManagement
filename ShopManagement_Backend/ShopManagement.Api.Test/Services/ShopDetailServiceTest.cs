@@ -45,7 +45,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetShopDetailWithPagination_OnSuccess_ShouldReturnBaseResponse()
+        public async Task GetShopDetailWithPagination_OnSuccess_ShouldReturnData()
         {
             //Arrange
             var shopDetailObject = new ShopDetailTest();
@@ -85,7 +85,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetShopDetailWithPagination_TotalPageReturn0_ShouldReturnBaseResponse()
+        public async Task GetShopDetailWithPagination_TotalRecordsReturn0_ShouldReturnData()
         {
             //Arrange
             var shopDetailObject = new ShopDetailTest();

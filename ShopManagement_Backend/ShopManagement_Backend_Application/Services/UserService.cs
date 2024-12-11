@@ -159,7 +159,6 @@ namespace ShopManagement_Backend_Application.Services
 
                 await _userRepo.UpdateAsync(userUpdate);
 
-                _memoryCacheService.RemoveCache("UserList");
                 _memoryCacheService.RemoveCache($"User_{id}");
 
                 return new BaseResponse(_resource.GetString("UpdateSuccess") ?? "");
@@ -204,7 +203,6 @@ namespace ShopManagement_Backend_Application.Services
                     }
                 }
 
-                _memoryCacheService.RemoveCache("UserList");
                 _memoryCacheService.RemoveCache($"User_{id}");
 
                 return new BaseResponse(_resource.GetString("DeleteSuccess") ?? "");

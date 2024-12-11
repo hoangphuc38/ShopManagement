@@ -13,6 +13,7 @@ using ShopManagement_Backend_DataAccess.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,7 +51,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetShopWithPagination_OnSuccess_ShouldReturnBaseResponse()
+        public async Task GetShopWithPagination_OnSuccess_ShouldReturnData()
         {
             //Arrange
             var shopObject = new ShopTest();
@@ -89,7 +90,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetShopWithPagination_TotalPageReturn0_ShouldReturnBaseResponse()
+        public async Task GetShopWithPagination_TotalRecordsReturn0_ShouldReturnData()
         {
             //Arrange
             var shopObject = new ShopTest();
@@ -150,7 +151,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetShopOfUser_OnSuccess_ShouldReturnBaseResponse()
+        public async Task GetShopOfUser_OnSuccess_ShouldReturnData()
         {
             //Arrange
             var shopObject = new ShopTest();
@@ -192,7 +193,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetShopOfUser_TotalPageReturn0_ShouldReturnBaseResponse()
+        public async Task GetShopOfUser_TotalRecordsReturn0_ShouldReturnData()
         {
             //Arrange
             var shopObject = new ShopTest();
@@ -247,6 +248,164 @@ namespace ShopManagement.Api.Test.Services
 
             //Act
             var result = await _shopServiceMock.GetShopOfUser(1, shopObject.paginationRequest);
+
+            //Assert
+            Assert.Equal(StatusCodes.Status500InternalServerError, result.Status);
+        }
+
+        [Fact]
+        public async Task UpdateShop_OnSuccess_ShouldReturnStatusCode200()
+        {
+            //Arrange
+            var shopObject = new ShopTest();
+
+            _shopRepoMock.Setup(r => r.GetFirstOrNullAsync(It.IsAny<Expression<Func<Shop, bool>>>()))
+                .ReturnsAsync(shopObject.shop);
+            _shopRepoMock.Setup(r => r.UpdateAsync(shopObject.shop));
+            _memoryCacheServiceMock.Setup(c => c.RemoveCache(It.IsAny<string>()));
+
+            //Act
+            var result = await _shopServiceMock.UpdateShop(1, shopObject.request);
+
+            //Assert
+            Assert.Equal(StatusCodes.Status200OK, result.Status);
+        }
+
+        [Fact]
+        public async Task UpdateShop_NotFoundShop_ShouldReturnStatusCode404()
+        {
+            //Arrange
+            var shopObject = new ShopTest();
+
+            _shopRepoMock.Setup(r => r.GetFirstOrNullAsync(It.IsAny<Expression<Func<Shop, bool>>>()))
+                .ReturnsAsync(shopObject.shopNull);
+
+            //Act
+            var result = await _shopServiceMock.UpdateShop(1, shopObject.request);
+
+            //Assert
+            Assert.Equal(StatusCodes.Status404NotFound, result.Status);
+        }
+
+        [Fact]
+        public async Task UpdateShop_ThrowException_ShouldReturnStatusCode500()
+        {
+            //Arrange
+            var shopObject = new ShopTest();
+
+            _shopRepoMock.Setup(r => r.GetFirstOrNullAsync(It.IsAny<Expression<Func<Shop, bool>>>()))
+                .Throws(new Exception("Failed"));
+
+            //Act
+            var result = await _shopServiceMock.UpdateShop(1, shopObject.request);
+
+            //Assert
+            Assert.Equal(StatusCodes.Status500InternalServerError, result.Status);
+        }
+
+        [Fact]
+        public async Task CreateShop_OnSuccess_ShouldReturnStatusCode200()
+        {
+            //Arrange
+            var shopObject = new ShopTest();
+            var userObject = new UserTest();
+
+            _userRepoMock.Setup(r => r.GetFirstOrNullAsync(It.IsAny<Expression<Func<User, bool>>>()))
+                .ReturnsAsync(userObject.user);
+            _mapperMock.Setup(m => m.Map<Shop>(It.IsAny<ShopRequest>()))
+                .Returns(shopObject.shop);
+            _shopRepoMock.Setup(r => r.AddAsync(It.IsAny<Shop>()));
+            _memoryCacheServiceMock.Setup(c => c.RemoveCache(It.IsAny<string>()));
+
+            //Act
+            var result = await _shopServiceMock.CreateShop(1, shopObject.request);
+
+            //Assert
+            Assert.Equal(StatusCodes.Status200OK, result.Status);
+        }
+
+        [Fact]
+        public async Task CreateShop_NotFoundUser_ShouldReturnStatusCode404()
+        {
+            //Arrange
+            var shopObject = new ShopTest();
+            var userObject = new UserTest();
+
+            _userRepoMock.Setup(r => r.GetFirstOrNullAsync(It.IsAny<Expression<Func<User, bool>>>()))
+                .ReturnsAsync(userObject.userNull);
+
+            //Act
+            var result = await _shopServiceMock.CreateShop(1, shopObject.request);
+
+            //Assert
+            Assert.Equal(StatusCodes.Status404NotFound, result.Status);
+        }
+
+        [Fact]
+        public async Task CreateShop_ThrowException_ShouldReturnStatusCode500()
+        {
+            //Arrange
+            var shopObject = new ShopTest();
+
+            _userRepoMock.Setup(r => r.GetFirstOrNullAsync(It.IsAny<Expression<Func<User, bool>>>()))
+                .Throws(new Exception("Failed"));
+
+            //Act
+            var result = await _shopServiceMock.CreateShop(1, shopObject.request);
+
+            //Assert
+            Assert.Equal(StatusCodes.Status500InternalServerError, result.Status);
+        }
+
+        [Fact]
+        public async Task DeleteShop_OnSuccess_ShouldReturnStatusCode200()
+        {
+            //Arrange
+            var shopObject = new ShopTest();
+            var detailObject = new ShopDetailTest();
+
+            _shopRepoMock.Setup(r => r.GetFirstOrNullAsync(It.IsAny<Expression<Func<Shop, bool>>>()))
+                .ReturnsAsync(shopObject.shop);
+            _shopRepoMock.Setup(r => r.UpdateAsync(It.IsAny<Shop>()));
+            _shopDetailRepoMock.Setup(r => r.GetAllAsync(It.IsAny<Expression<Func<ShopDetail, bool>>>()))
+                .ReturnsAsync(detailObject.shopDetailList);
+            _shopDetailRepoMock.Setup(r => r.UpdateAsync(It.IsAny<ShopDetail>()));
+            _memoryCacheServiceMock.Setup(c => c.RemoveCache(It.IsAny<string>()));
+
+            //Act
+            var result = await _shopServiceMock.DeleteShop(1);
+
+            //Assert
+            Assert.Equal(StatusCodes.Status200OK, result.Status);
+        }
+
+        [Fact]
+        public async Task DeleteShop_NotFoundShop_ShouldReturnStatusCode404()
+        {
+            //Arrange
+            var shopObject = new ShopTest();
+
+            _shopRepoMock.Setup(r => r.GetFirstOrNullAsync(It.IsAny<Expression<Func<Shop, bool>>>()))
+                .ReturnsAsync(shopObject.shopNull);
+
+            //Act
+            var result = await _shopServiceMock.DeleteShop(1);
+
+            //Assert
+            Assert.Equal(StatusCodes.Status404NotFound, result.Status);
+        }
+
+        [Fact]
+        public async Task DeleteShop_ThrowException_ShouldReturnStatusCode500()
+        {
+            //Arrange
+            var shopObject = new ShopTest();
+
+            _shopRepoMock.Setup(r => r.GetFirstOrNullAsync(It.IsAny<Expression<Func<Shop, bool>>>()))
+                .Throws(new Exception("Failed"));
+
+            //Act
+            var result = await _shopServiceMock.DeleteShop(1);
 
             //Assert
             Assert.Equal(StatusCodes.Status500InternalServerError, result.Status);

@@ -56,7 +56,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetProductWithPagination_OnSuccess_ShouldReturnBaseResponse()
+        public async Task GetProductWithPagination_OnSuccess_ShouldReturnData()
         {
             //Arrange
             var productObject = new ProductTest();
@@ -97,7 +97,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetProductWithPagination_TotalPageReturn0_ShouldReturnBaseResponse()
+        public async Task GetProductWithPagination_TotalRecordsReturn0_ShouldReturnData()
         {
             //Arrange
             var productObject = new ProductTest();
@@ -155,7 +155,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetDetailProductWithCache_OnSuccess_ShouldReturnBaseResponse()
+        public async Task GetDetailProductWithCache_OnSuccess_ShouldReturnData()
         {
             //Arrange 
             var productObject = new ProductTest();
@@ -173,7 +173,7 @@ namespace ShopManagement.Api.Test.Services
         }
 
         [Fact]
-        public async Task GetDetailProductNoCache_OnSuccess_ShouldReturnBaseResponse()
+        public async Task GetDetailProductNoCache_OnSuccess_ShouldReturnData()
         {
             //Arrange 
             var productObject = new ProductTest();

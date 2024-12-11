@@ -47,6 +47,8 @@ namespace ShopManagement.Api.Test.Fixtures
             IsDeleted = false,
         };
 
+        public User userNull = null;
+
         public List<User> userList = new List<User>
         {
             new User
@@ -69,6 +71,43 @@ namespace ShopManagement.Api.Test.Fixtures
                 RoleId = 1,
                 IsDeleted = false,
             },
+        };
+
+        public List<UserResponse> userListMap = new List<UserResponse>
+        {
+            new UserResponse
+            {
+                UserID = 1,
+                UserName = "Test@example.com",
+                FullName = "Test",
+                Address = "ABC",
+                SignUpDate = DateTime.Now,
+            },
+            new UserResponse
+            {
+                UserID = 2,
+                UserName = "Test@example.com",
+                FullName = "Test",
+                Address = "ABC",
+                SignUpDate = DateTime.Now,
+            }
+        };
+
+        public UserPaginationRequest paginationRequest = new UserPaginationRequest
+        {
+            PageIndex = 1,
+            PageSize = 10,
+            SearchText = "abs",
+            Column = "testColumn",
+            Sort = "sortClause",
+        };
+
+        public UserRequest request = new UserRequest
+        {
+            UserName = "Test",
+            Password = "dhkahdskad",
+            Address = "abc",
+            FullName = "tste"
         };
     }
 }
