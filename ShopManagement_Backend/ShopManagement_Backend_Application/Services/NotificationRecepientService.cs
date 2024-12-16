@@ -39,7 +39,11 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogInformation($"[GetAllNotification] Start to get notification of user with id {userID}");
 
-                var notificationList = await _notiRecepRepo.GetAllAsync(c => c.UserId == userID && c.IsRead == false);
+                var notificationList = await _notiRecepRepo.GetAllAsync(c => c.UserId == userID);
+
+                var unread = await _notiRecepRepo.GetAllAsync(c => c.UserId == userID && c.IsRead == false);
+
+                int total = unread.Count();
 
                 foreach (var notification in notificationList)
                 {
@@ -53,7 +57,13 @@ namespace ShopManagement_Backend_Application.Services
 
                 var notificationMapper = _mapper.Map<List<NotificationResponse>>(notificationList);
 
-                return new BaseResponse(notificationMapper);
+                var response = new TotalNotificationResponse
+                {
+                    UnreadNotification = total,
+                    Results = notificationMapper
+                };
+
+                return new BaseResponse(response);
             }
             catch (Exception ex)
             {

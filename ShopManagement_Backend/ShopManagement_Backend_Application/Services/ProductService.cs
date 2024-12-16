@@ -250,6 +250,7 @@ namespace ShopManagement_Backend_Application.Services
                     {
                         UserId = user.Id,
                         NotificationId = notification.NotificationId,
+                        IsRead = false,
                     };
 
                     await _notiRecepRepo.AddAsync(notificationRecep);   
