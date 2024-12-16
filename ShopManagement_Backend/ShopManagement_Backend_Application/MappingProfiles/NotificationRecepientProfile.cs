@@ -14,7 +14,11 @@ namespace ShopManagement_Backend_Application.MappingProfiles
         public NotificationRecepientProfile()
         {
             CreateMap<NotificationRecepient, NotificationResponse>()
-                .ForPath(dest => dest.NotificationContent, opt => opt.MapFrom(src => src.Notification));
+            .ForMember(dest => dest.NotificationRecepientID, opt => opt.MapFrom(src => src.NotificationRecepientId))
+            .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => src.IsRead ?? false))  // Default IsRead to false if null
+            .ForPath(dest => dest.NotificationContent.Title, opt => opt.MapFrom(src => src.Notification.Title))
+            .ForPath(dest => dest.NotificationContent.Content, opt => opt.MapFrom(src => src.Notification.Content))
+            .ForPath(dest => dest.NotificationContent.SenderInfo, opt => opt.MapFrom(src => src.Notification.SenderInfo));
         }
     }
 }

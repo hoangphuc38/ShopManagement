@@ -27,6 +27,7 @@ namespace ShopManagement_Backend_Application
             services.AddScoped<IShopDetailService, ShopDetailService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<INotificationRecepientService, NotificationRecepientService>();
             services.AddScoped<IMemoryCacheService, MemoryCacheService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddSingleton<IImageService, ImageService>();

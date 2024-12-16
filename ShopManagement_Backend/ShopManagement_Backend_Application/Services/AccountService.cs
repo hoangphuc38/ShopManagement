@@ -102,6 +102,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 var loginResponse = new LoginResponseModel
                 {
+                    UserID = user.Id,
                     Token = _tokenService.GenerateToken(user, userRoles.RoleName),
                     UserName = user.UserName,
                     FullName = user.FullName,
@@ -191,7 +192,7 @@ namespace ShopManagement_Backend_Application.Services
                 {
                     return new BaseResponse(
                         StatusCodes.Status400BadRequest,
-                        _resource.GetString("MailExist") ?? "");
+                        _resource.GetString("EmailExist") ?? "");
                 }
 
                 var role = await _roleRepo.GetFirstOrNullAsync(t => t.RoleName == register.Role);

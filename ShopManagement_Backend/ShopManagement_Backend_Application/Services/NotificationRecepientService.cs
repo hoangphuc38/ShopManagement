@@ -39,9 +39,19 @@ namespace ShopManagement_Backend_Application.Services
             {
                 _logger.LogInformation($"[GetAllNotification] Start to get notification of user with id {userID}");
 
-                var notificationList = await _notiRecepRepo.GetAllAsync(c => c.UserId == userID);
+                var notificationList = await _notiRecepRepo.GetAllAsync(c => c.UserId == userID && c.IsRead == false);
 
-                var notificationMapper = _mapper.Map<IEnumerable<NotificationResponse>>(notificationList);
+                foreach (var notification in notificationList)
+                {
+                    var content = await _notiRepo.GetFirstAsync(c => c.NotificationId == notification.NotificationId);
+
+                    if (content == null)
+                    {
+                        return new BaseResponse(StatusCodes.Status500InternalServerError, "Content null");
+                    }
+                }
+
+                var notificationMapper = _mapper.Map<List<NotificationResponse>>(notificationList);
 
                 return new BaseResponse(notificationMapper);
             }

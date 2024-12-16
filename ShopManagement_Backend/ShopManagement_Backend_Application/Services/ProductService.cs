@@ -166,6 +166,7 @@ namespace ShopManagement_Backend_Application.Services
 
                 product.ProductName = request.ProductName;
                 product.Price = request.Price;
+                product.ImageUrl = request.ImageUrl;
 
                 await _productRepo.UpdateAsync(product);
 
