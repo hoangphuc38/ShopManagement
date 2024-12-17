@@ -10,5 +10,7 @@ namespace ShopManagement_Backend_Application.Services.Interfaces
     public interface INotificationRecepientService
     {
         Task<BaseResponse> GetAllNotification(int userID);
+
+        Task<BaseResponse> ReadNotification(int notificationID);
     }
 }

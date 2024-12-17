@@ -23,5 +23,13 @@ namespace ShopManagement_Backend_API.Controllers
 
             return StatusCode(result.Status, result);
         }
+
+        [HttpPut("{notificationID}")]
+        public async Task<IActionResult> ReadNotification(int notificationID)
+        {
+            var result = await _notificationService.ReadNotification(notificationID);
+
+            return StatusCode(result.Status, result);
+        }
     }
 }

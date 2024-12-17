@@ -9,5 +9,8 @@ namespace ShopManagement_Backend_DataAccess.Repositories.Interfaces
 {
     public interface INotificationRecepientRepository : IBaseRepository<NotificationRecepient>
     {
+        IEnumerable<NotificationRecepient> GetAllNotifications(int userID);
+
+        int GetUnreadNotification(int userID);
     }
 }
