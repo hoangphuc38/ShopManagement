@@ -2,7 +2,6 @@
 using BCrypt.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using ShopManagement_Backend_Application.Helpers;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Models.Token;
 using ShopManagement_Backend_Application.Models.User;

@@ -1,4 +1,5 @@
-﻿using ShopManagement_Backend_Application.Models;
+﻿using Microsoft.IdentityModel.Tokens;
+using ShopManagement_Backend_Application.Models;
 
 namespace ShopManagement_Backend_API.Middlewares
 {
@@ -35,17 +36,9 @@ namespace ShopManagement_Backend_API.Middlewares
 
             switch (exception)
             {
-                case BadHttpRequestException:
+                case SecurityTokenExpiredException:
                     response = new BaseResponse(
-                        StatusCodes.Status400BadRequest, "Bad request");
-                    break;
-                case KeyNotFoundException:
-                    response = new BaseResponse(
-                        StatusCodes.Status404NotFound, "The request key not found");
-                    break;
-                case UnauthorizedAccessException:
-                    response = new BaseResponse(
-                        StatusCodes.Status401Unauthorized, "Unauthorized");
+                        StatusCodes.Status401Unauthorized, "Access token has expired");
                     break;
                 default:
                     response = new BaseResponse(

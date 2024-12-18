@@ -37,6 +37,7 @@ namespace ShopManagement_Backend_API.Controllers
         }
 
         [HttpPost("refresh-token")]
+        [AllowAnonymousAttribute]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
         {
             var result = await _accountService.RefreshToken(request);

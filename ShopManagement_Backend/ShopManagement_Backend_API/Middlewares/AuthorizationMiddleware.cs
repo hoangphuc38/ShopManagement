@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using ShopManagement_Backend_Application.Helpers;
 using ShopManagement_Backend_Application.Models;
 using ShopManagement_Backend_Application.Services;
 using ShopManagement_Backend_Application.Services.Interfaces;
@@ -36,12 +35,6 @@ namespace ShopManagement_Backend_API.Middlewares
                 
                 var validateToken = await ValidateToken(token);
 
-                if (validateToken == null)
-                {
-                    await HandleExceptionAsync(context);
-                    return;  
-                }
-
                 var userName = validateToken.Claims.First().Value;
 
                 var userInfo = await userRepo.GetFirstOrNullAsync(c => c.UserName == userName);
@@ -73,16 +66,6 @@ namespace ShopManagement_Backend_API.Middlewares
             }, out SecurityToken validatedToken);
 
             return (JwtSecurityToken) validatedToken;
-        }
-
-        private async Task HandleExceptionAsync(HttpContext context)
-        {
-            BaseResponse response = new BaseResponse(
-                        StatusCodes.Status401Unauthorized, "Unauthorized");
-
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)response.Status;
-            await context.Response.WriteAsJsonAsync(response);
         }
     }
 }

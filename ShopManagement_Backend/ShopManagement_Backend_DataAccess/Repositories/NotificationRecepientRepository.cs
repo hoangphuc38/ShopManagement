@@ -29,7 +29,8 @@ namespace ShopManagement_Backend_DataAccess.Repositories
                     $@"SELECT 
                         s.Title, 
                         s.Content, 
-                        s.SentDate, 
+                        s.SentDate,
+                        s.SenderInfo,
                         p.NotificationRecepientID,
                         p.UserID,
                         p.NotificationID,
